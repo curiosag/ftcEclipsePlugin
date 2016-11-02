@@ -23,6 +23,7 @@ import java.util.Observer;
 
 import org.cg.common.check.Check;
 import org.cg.eclipse.plugins.ftc.glue.FtcPluginClient;
+import org.cg.ftc.ftcClientJava.Observism;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.swt.custom.StyledText;
@@ -62,20 +63,20 @@ public class FtcEditor extends TextEditor {
 		return viewer;
 	}
 
-	public class OnConnectObserver implements Observer {
-
+	private Observer onConnectObserver = new Observer() {
 		@Override
 		public void update(Observable o, Object arg) {
 			Display.getDefault().asyncExec(new Runnable() {
+				@Override
 				public void run() {
+					// make the token provider think, the text has changed, otherwise it won't re-evaluate
+					getStyledText().append(" ");
+					// append doesen't trigger documentchanged, though, so setStyles() call is necessary
 					setStyles();
 				}
 			});
-
 		}
-	}
-
-	private Observer onConnectObserver = new OnConnectObserver();
+	};
 
 	public int getCaretOffset() {
 		return getSourceViewer().getTextWidget().getCaretOffset();
@@ -167,7 +168,7 @@ public class FtcEditor extends TextEditor {
 			public void partActivated(IWorkbenchPart part) {
 				if (part == thisEditor) {
 					FtcPluginClient.getDefault().onEditorActivated(thisEditor);
-					// FtcPluginClient.getDefault().addOnConnectListener(onConnectObserver);
+					FtcPluginClient.getDefault().addOnConnectListener(onConnectObserver);
 				}
 			}
 
@@ -179,7 +180,7 @@ public class FtcEditor extends TextEditor {
 			public void partDeactivated(IWorkbenchPart part) {
 				if (part == thisEditor) {
 					FtcPluginClient.getDefault().onEditorActivated(thisEditor);
-					// FtcPluginClient.getDefault().removeOnConnectListener(onConnectObserver);
+					FtcPluginClient.getDefault().removeOnConnectListener(onConnectObserver);
 				}
 			}
 
@@ -196,8 +197,11 @@ public class FtcEditor extends TextEditor {
 
 	private void setStyles() {
 		syntaxColoring.setText(getText());
-		syntaxColoring.setMarkers(resource);
+		// styles need to be set before markers, because marker styles
+		// will be added to existing styles rather than replacing them
 		syntaxColoring.setStyles();
+		syntaxColoring.setMarkers(resource);
+
 	}
 
 	/**

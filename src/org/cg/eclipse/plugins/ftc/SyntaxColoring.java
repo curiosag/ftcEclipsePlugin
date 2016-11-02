@@ -11,7 +11,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.LineStyleEvent;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Color;
@@ -28,11 +27,11 @@ public class SyntaxColoring {
 	Color yellow;
 	Color black;
 	Color blue;
-
+	
 	public SyntaxColoring(StyledText styledText, ColorManager colorManager) {
 		this.styledText = styledText;
 
-		yellow = colorManager.getColor(new RGB(255, 255, 51));
+		yellow = colorManager.getColor(new RGB(255, 214, 51));
 		blue = colorManager.getColor(new RGB(0, 0, 255));
 		red = colorManager.getColor(new RGB(255, 0, 0));
 		black = colorManager.getColor(new RGB(0, 0, 0));
@@ -45,6 +44,7 @@ public class SyntaxColoring {
 		elementColors.put(SyntaxElementType.stringLiteral, blue);
 		elementColors.put(SyntaxElementType.numericLiteral, red);
 		elementColors.put(SyntaxElementType.identifier, red);
+				
 	}
 
 	public Color getColor(SyntaxElementType type) {
@@ -87,6 +87,12 @@ public class SyntaxColoring {
 
 	private StyleRange getStyleRange(SyntaxElement t, Color color) {
 		StyleRange result = new StyleRange(t.from, (t.to - t.from) + 1, color, null);
+		setUnderlineStyles(t, result);
+
+		return result;
+	}
+
+	private void setUnderlineStyles(SyntaxElement t, StyleRange result) {
 		if (t.type == SyntaxElementType.error || t.hasSemanticError()) {
 			result.underline = true;
 			result.underlineStyle = SWT.UNDERLINE_SQUIGGLE;
@@ -97,12 +103,10 @@ public class SyntaxColoring {
 
 		if (t.hasSemanticError())
 			result.underlineColor = yellow;
-
-		return result;
 	}
 
 	/**
-	 * Set markers. Call setText() before to populate style caches.
+	 * Set markers. Call setText() before to reparse document
 	 */
 
 	public void setMarkers(IResource r) {
@@ -141,7 +145,7 @@ public class SyntaxColoring {
 	}
 
 	/**
-	 * Set styles. Call setText() before to populate style caches.
+	 * Set styles. Call setText() before to reparse document
 	 */
 
 	public void setStyles() {
@@ -151,40 +155,12 @@ public class SyntaxColoring {
 			int startIdx = 0;
 			int endIdx = styledText.getText().length() - 1;
 
-			setNoStyle(startIdx, endIdx);
 			for (StyleRange r : getStyles(startIdx, endIdx))
 				styledText.setStyleRange(r);
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	protected void setLineStyle(LineStyleEvent event) {
-		try {
-			setText(styledText.getText());
-
-			int startIdx = event.lineOffset;
-			int endIdx = startIdx + event.lineText.length();
-
-			setNoStyle(startIdx, endIdx);
-			event.styles = toArray(getStyles(startIdx, endIdx));
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void setNoStyle(int startIdx, int endIdx) {
-		styledText.setStyleRange(new StyleRange(startIdx, endIdx, null, null));
-	}
-
-	private StyleRange[] toArray(List<StyleRange> styles) {
-		StyleRange[] styleArray = new StyleRange[styles.size()];
-
-		for (int i = 0; i < styles.size(); i++)
-			styleArray[i] = styles.get(i);
-		return styleArray;
 	}
 
 }

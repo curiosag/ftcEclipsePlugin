@@ -3,8 +3,9 @@ StyledText.redrawRange(int start, int length, boolean clearBackground) clearBack
 
 IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
 		
-
-org.eclipse.datatools.sqltools.data.internal.core.editor.messages -> pickt messages aus resource file
+ftcClientController
+public Completions get(String text, int cursorPos) { ... cursorPos not used
+optionale re-evaluation bei gleich bleibender query in syntaxelementsource.get()
 
 progress
 schöne completion proposals
@@ -13,10 +14,6 @@ bug close editor and reopen file -> failed to create the part's control
 
 Convention stuff
 
-ftcClientController
-public Completions get(String text, int cursorPos) { ... cursorPos not used
-
-FtcEditor is singleton??
 ftcClientController.authenticate() authorize -> authenticate
 before model element completions -> authorize
 view: del columns

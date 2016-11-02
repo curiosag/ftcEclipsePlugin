@@ -84,7 +84,7 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 					public void run() {
 						logging.Info("connecting to fusion tables service");
 						controller.authenticate();
-						//onConnect();
+						onConnect();
 					}
 
 				}).start();
