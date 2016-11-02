@@ -1,9 +1,9 @@
-/*******************************************************************************
-*
- *******************************************************************************/
+
 package org.cg.eclipse.plugins.ftc;
 
-import org.eclipse.jface.text.templates.Template;
+import org.cg.common.check.Check;
+import org.cg.common.util.StringUtil;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.templates.TemplateContext;
 import org.eclipse.jface.text.templates.TemplateVariableResolver;
 
@@ -14,20 +14,31 @@ public class FtcVariableResolver extends TemplateVariableResolver {
 
 	@Override
 	protected String[] resolveAll(TemplateContext context) {
-		System.out.println("caret offset: " + FtcEditor.getDefault().getCaretOffset() + " ");
-		System.out.println(getType());
 
-		Template template = TemplateApplicationCircumstances.getDefault().getTemplate();
-		if (template != null)
-			System.out.println(template.getPattern());
-		// TemplateProposal.apply triggers all this and knows everything.
-		// Override to supply template text here
-		// isn't included in editor text yet at resoveAll
+		TemplateApplicationCircumstances circumstances = TemplateApplicationCircumstances.getDefault();
+		String pattern = circumstances.getTemplate().getPattern();
+		Check.notNull(pattern);
 
-		if (getType().equals("t"))
-			return new String[] { "T1", "T2" };
-		else
-			return new String[] { "C1", "C2" };
+		String currentText = circumstances.getText();
+		String patchedText = StringUtil.insert(currentText, circumstances.getOffset(), prepareForParsing(pattern));
+		// a "${t}" gets changed to "  t " for allow correct parsing, so the index must be at the "t" rather than "$"
+		int variablePosition = circumstances.getOffset() + (pattern.indexOf(String.format("${%s}", getType()))) + 2;
 
+		MessageConsoleLogger.getDefault().Info("* variable resolver *");
+		MessageConsoleLogger.getDefault().Info(patchedText);
+		MessageConsoleLogger.getDefault().Info(String.format("%d", variablePosition));
+		MessageConsoleLogger.getDefault().Info(getType());
+
+		ICompletionProposal[] proposals = FtcCompletionProcessor.getModelElementProposals(patchedText,
+				variablePosition);
+		MessageConsoleLogger.getDefault().Info(proposals.length + " proposals");
+		String[] result = new String[proposals.length];
+		for (int i = 0; i < proposals.length; i++)
+			result[i] = proposals[i].getDisplayString();
+		return result;
+	}
+
+	private String prepareForParsing(String pattern) {
+		return pattern.replace("$", " ").replace("{", " ").replace("}", " ");
 	}
 }

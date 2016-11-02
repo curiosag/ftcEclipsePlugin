@@ -1,65 +1,27 @@
 StyledText.redrawRange(int start, int length, boolean clearBackground) clearBackground ... can be false
 
-TemplateContext.evaluate
-TemplateVariable.getValues()
 
 IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
 		
 
 org.eclipse.datatools.sqltools.data.internal.core.editor.messages -> pickt messages aus resource file
 
-org.eclipse.datatools.sqltools.data.internal.core.editor.TableDataImpl
+progress
+schöne completion proposals
 
-    public Vector getRows()
-    {
-        Vector v = new Vector();
-        Iterator it = rows.iterator();
-        while (it.hasNext()) {
-            RowDataImpl row = (RowDataImpl)it.next();
-            if (row.getState()!=RowDataImpl.STATE_DELETED)
-                v.add(row);
-        }
-        return v;
-    }
-    
-    org.eclipse.datatools.sqltools.common.ui.tableviewer.TableDataContentProvider
-    
-      public Object[] getElements(Object inputElement)
-    {
-        if (_tableData == null)
-        {
-            return new String[]
-            {
-            }
-            ;
-        }
+bug close editor and reopen file -> failed to create the part's control
 
-        try
-        {
-            Vector rows = _tableData.getRows();
-            int rc = rows.size();
-            if (_tableData.isNewRowDataAllowed())
-            {
-                rc++;
-            }
-            Object[] a = new Object[rc];
-            _tableData.getRows().toArray(a);
-            if (_tableData.isNewRowDataAllowed())
-            {
-                a[rc - 1] = new Object(); // insertion row
-            }
-            return a;
-        }
-        catch (Exception ex)
-        {
-            return new Object[]
-            {
-            }
-            ;
-        }
-    }
-    
-    
+Convention stuff
+
+ftcClientController
+public Completions get(String text, int cursorPos) { ... cursorPos not used
+
+FtcEditor is singleton??
+ftcClientController.authenticate() authorize -> authenticate
+before model element completions -> authorize
+view: del columns
+Options
+completions image?
     
 # plugin.properties
 in Manifest.MF of plugin.xml add: Bundle-Localization: plugin

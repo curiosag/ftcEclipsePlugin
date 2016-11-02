@@ -6,7 +6,7 @@ import org.eclipse.jface.text.templates.Template;
 public class TemplateApplicationCircumstances {
 
 	private Template template;
-	private ITextViewer viewer;
+	private String text;
 	private int offset;
 	
 	private static TemplateApplicationCircumstances _default;
@@ -18,18 +18,11 @@ public class TemplateApplicationCircumstances {
 		
 		return _default;
 	}
-	
-	private TemplateApplicationCircumstances()
-	{
-		this.template = null;
-		this.viewer = null;
-		this.offset = 0;
-	}
-	
-	public void setCircumstances(Template template, ITextViewer viewer, int offset)
+		
+	public void setCircumstances(Template template, String text, int offset)
 	{
 		this.template = template;
-		this.viewer = viewer;
+		this.text = text;
 		this.offset = offset;
 	}
 	
@@ -37,8 +30,8 @@ public class TemplateApplicationCircumstances {
 		return template;
 	}
 
-	public ITextViewer getViewer() {
-		return viewer;
+	public String getText() {
+		return text;
 	}
 
 	public int getOffset() {

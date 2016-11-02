@@ -15,7 +15,7 @@ public class FtcTemplateProposal extends TemplateProposal {
 	
 	@Override
 	public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
-		TemplateApplicationCircumstances.getDefault().setCircumstances(getTemplate(), viewer, offset);
+		TemplateApplicationCircumstances.getDefault().setCircumstances(getTemplate(), viewer.getTextWidget().getText(), offset);
 		super.apply(viewer, trigger, stateMask, offset);
 	}
 

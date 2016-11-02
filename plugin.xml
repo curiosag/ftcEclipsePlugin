@@ -15,8 +15,19 @@
    </extension>
 
    <extension
-         id="org.cg.ftcparsermarker"
-         name="Ftc Parsing Problems"
+         id="org.cg.ftcSyntaxErrormarker"
+         name="ftc syntax error"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+      <persistent
+            value="false">
+      </persistent>
+   </extension>
+   <extension
+         id="org.cg.ftcModelProblemMarker"
+         name="ftc model reference error"
          point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.core.resources.problemmarker">
@@ -213,6 +224,47 @@
              
           </toolbar>
        </menuContribution>
+    </extension>
+    <extension
+          point="org.eclipse.ui.preferencePages">
+       <page
+             class="org.cg.eclipse.plugins.ftc.preference.Preferences"
+             id="org.cg.eclipse.plugins.ftc.preference.Preferences"
+             name="Ftc Preferences">
+       </page>
+    </extension>
+    <extension
+          point="org.eclipse.core.runtime.preferences">
+       <initializer
+             class="org.cg.eclipse.plugins.ftc.preference.PreferenceInitializer">
+       </initializer>
+    </extension>
+    <extension
+          point="org.eclipse.ui.editors.markerAnnotationSpecification"
+          id="ftcMarkerAnnotationSpecification" name="Ftc Marker Annotation">
+       <specification
+             annotationType="org.cg.eclipse.plugins.ftc.parseProblemAnnotation"
+             includeOnPreferencePage="true"
+             label="FtcAnnotation"
+			icon="icons/sample.gif"
+			overviewRulerPreferenceKey="clruler"
+			overviewRulerPreferenceValue="true"
+			colorPreferenceKey="clcolor"
+			colorPreferenceValue="255,255,0"
+			textPreferenceKey="cltext"
+			textPreferenceValue="false"
+			verticalRulerPreferenceKey="clvertical"
+			verticalRulerPreferenceValue="true"
+			textStylePreferenceKey="clstyle"
+            textStylePreferenceValue="NONE">
+       </specification>
+    </extension>
+    <extension
+          point="org.eclipse.ui.editors.annotationTypes">
+       <type markerSeverity="0"
+            super="org.eclipse.ui.workbench.texteditor.info"
+            name="org.cg.eclipse.plugins.ftc.parseProblemAnnotation"
+            markerType="org.cg.ftcparsermarker"/>
     </extension>
     
 </plugin>

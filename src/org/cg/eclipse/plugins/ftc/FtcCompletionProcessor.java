@@ -1,13 +1,18 @@
 package org.cg.eclipse.plugins.ftc;
 
+import java.util.List;
+
+import org.cg.common.check.Check;
+import org.cg.eclipse.plugins.ftc.glue.EclipseStyleCompletions;
+import org.cg.eclipse.plugins.ftc.glue.FtcPluginClient;
+import org.cg.ftc.shared.structures.CodeSnippetCompletion;
+import org.cg.ftc.shared.structures.ModelElementCompletion;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
-import org.eclipse.jface.text.contentassist.ContextInformation;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.TemplateCompletionProcessor;
 import org.eclipse.jface.text.templates.TemplateContext;
@@ -20,6 +25,7 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 
 	private static final String DEFAULT_IMAGE = "$nl$/icons/sample.gif"; //$NON-NLS-1$
 	private TemplateContextType templateContextType = null;
+	private EclipseStyleCompletions currentCompletions = null;
 
 	private TemplateContextType getTemplateContextType() {
 		ContributionContextTypeRegistry registry = new ContributionContextTypeRegistry();
@@ -34,8 +40,11 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int documentOffset) {
+	
+		currentCompletions = getFtcCompletions(viewer.getTextWidget().getText(), documentOffset);
+		
 		ICompletionProposal[] templates = super.computeCompletionProposals(viewer, documentOffset);
-		ICompletionProposal[] completions = addCompletionProposals(viewer, documentOffset);
+		ICompletionProposal[] completions = getModelElementProposals(currentCompletions.modelElements, documentOffset);
 
 		ICompletionProposal[] result = new ICompletionProposal[templates.length + completions.length];
 		
@@ -52,28 +61,41 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 		return result;
 	}
 
-	private ICompletionProposal[] addCompletionProposals(ITextViewer viewer, int documentOffset) {
-		String[] fgProposalNames = { "abstract", "boolean", "break" };
-		String[] fgProposals = { "abstract", "boolean", "break" };
+	private static EclipseStyleCompletions getFtcCompletions(String text, int documentOffset) {
+		return FtcPluginClient.getDefault().getCompletions(text, documentOffset);
+	}
 
-		ICompletionProposal[] result = new ICompletionProposal[fgProposals.length];
-		for (int i = 0; i < fgProposals.length; i++) {
-			IContextInformation info = new ContextInformation(fgProposals[i], fgProposals[i]);
-			result[i] = new CompletionProposal(fgProposals[i], documentOffset, 0, fgProposals[i].length(), null,
-					fgProposalNames[i], info, "additional info");
+	private static ICompletionProposal[] getModelElementProposals(List<ModelElementCompletion> modelElements, int documentOffset) {
+		ICompletionProposal[] result = new ICompletionProposal[modelElements.size()];
+		
+		int i = 0;
+		for (ModelElementCompletion e : modelElements) {
+			result[i] = new CompletionProposal(e.getPatch(), documentOffset, 0, documentOffset);
+			i++;
 		}
+		
 		return result;
 	}
 
-	/**
-	 * Return the XML context type that is supported by this plug-in.
-	 *
-	 * @param viewer
-	 *            the viewer, ignored in this implementation
-	 * @param region
-	 *            the region, ignored in this implementation
-	 * @return the supported XML context type
-	 */
+	public static ICompletionProposal[] getModelElementProposals(String text, int documentOffset)
+	{
+		return getModelElementProposals(getFtcCompletions(text, documentOffset).modelElements, documentOffset);
+	}
+	
+	@Override
+	protected Template[] getTemplates(String contextTypeId) {
+		
+		Template[] result = new Template[getCurrentCompletions().templates.size()];
+		
+		int i = 0;
+		for (CodeSnippetCompletion template : getCurrentCompletions().templates) {
+			result[i] = new Template(template.displayName, "", FtcContextType.TYPE, template.snippet, false);
+			i++;
+		}
+		
+		return result;
+	}
+
 	@Override
 	protected TemplateContextType getContextType(ITextViewer viewer, IRegion region) {
 		if (templateContextType == null)
@@ -82,23 +104,21 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 	}
 
 	@Override
-	protected Template[] getTemplates(String contextTypeId) {
-		Template[] result = new Template[1];
-		result[0] = new Template("a template", "template description", FtcContextType.TYPE, "a ${t} b ${f} c", true);
-		return result;
-	}
-
-	@Override
 	protected Image getImage(Template template) {
 		ImageRegistry registry = Activator.getDefault().getImageRegistry();
 		Image image = registry.get(DEFAULT_IMAGE);
 		if (image == null) {
-			ImageDescriptor desc = AbstractUIPlugin.imageDescriptorFromPlugin("org.cg.ftceditor.FtcEditor", //$NON-NLS-1$
-					DEFAULT_IMAGE);
+			ImageDescriptor desc = AbstractUIPlugin.imageDescriptorFromPlugin("org.cg.ftceditor.FtcEditor", DEFAULT_IMAGE);
 			registry.put(DEFAULT_IMAGE, desc);
 			image = registry.get(DEFAULT_IMAGE);
+
 		}
 		return image;
+	}
+
+	public EclipseStyleCompletions getCurrentCompletions() {
+		Check.notNull(currentCompletions);
+		return currentCompletions;
 	}
 
 }

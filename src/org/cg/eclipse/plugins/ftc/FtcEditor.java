@@ -1,64 +1,104 @@
 package org.cg.eclipse.plugins.ftc;
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.editors.text.FileDocumentProvider;
 import org.eclipse.ui.editors.text.TextEditor;
+import com.google.common.base.Stopwatch;
+
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ExtendedModifyEvent;
 import org.eclipse.swt.custom.ExtendedModifyListener;
-import org.eclipse.swt.custom.LineStyleEvent;
-import org.eclipse.swt.custom.LineStyleListener;
-import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.text.source.IVerticalRuler;
 
-import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
+import org.cg.common.check.Check;
 import org.cg.eclipse.plugins.ftc.glue.FtcPluginClient;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.jface.text.DocumentEvent;
-import org.eclipse.jface.text.IDocumentListener;
-import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 
 public class FtcEditor extends TextEditor {
 
-	private final ColorManager colorManager;
+	private final static ColorManager colorManager = new ColorManager();
+	private SyntaxColoring syntaxColoring;
+
 	private final FtcSourceViewerConfiguration sourceViewerConfiguration;
+	private final MessageConsoleLogger logging = MessageConsoleLogger.getDefault();
+	Stopwatch markerStopwatch = Stopwatch.createStarted();
 
-	private int fCaretOffset;
+	private IResource resource;
 
-	private int editorNumber = Activator.getDefault().incCounter();
+	/*
+	 * @see org.eclipse.ui.texteditor.AbstractTextEditor#createSourceViewer(
+	 * Composite, IVerticalRuler, int)
+	 * 
+	 * @see
+	 * org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#createSourceViewer(
+	 * Composite, IVerticalRuler, int)
+	 */
 
-	private static FtcEditor instance = null;
+	@Override
+	protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
 
-	public static FtcEditor getDefault() {
-		return instance;
+		fAnnotationAccess = getAnnotationAccess();
+		fOverviewRuler = createOverviewRuler(getSharedColors());
+
+		ISourceViewer viewer = new FtcSourceViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
+		// ensure decoration support has been created and configured.
+		getSourceViewerDecorationSupport(viewer);
+
+		return viewer;
 	}
+
+	public class OnConnectObserver implements Observer {
+
+		@Override
+		public void update(Observable o, Object arg) {
+			Display.getDefault().asyncExec(new Runnable() {
+				public void run() {
+					setStyles();
+				}
+			});
+
+		}
+	}
+
+	private Observer onConnectObserver = new OnConnectObserver();
 
 	public int getCaretOffset() {
 		return getSourceViewer().getTextWidget().getCaretOffset();
 	}
 
-	public String text() {
-		return getSourceViewer().getTextWidget().getText();
+	private FtcStyledText getStyledText() {
+		StyledText text = getSourceViewer().getTextWidget();
+		Check.isTrue(text instanceof FtcStyledText);
+		return (FtcStyledText) text;
+	}
+
+	public String getText() {
+		return getStyledText().getText();
 	}
 
 	public FtcEditor() {
 		super();
-		setPartName(String.format("ftc editor %d", Activator.getDefault().incCounter()));
 
-		colorManager = new ColorManager();
 		sourceViewerConfiguration = new FtcSourceViewerConfiguration(colorManager);
 		setSourceViewerConfiguration(sourceViewerConfiguration);
 		FileDocumentProvider p = new FileDocumentProvider();
 		setDocumentProvider(p);
 
-		instance = this;
 	}
 
 	protected void initializeEditor() {
@@ -70,99 +110,64 @@ public class FtcEditor extends TextEditor {
 		super.dispose();
 	}
 
+	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-
-		addLineStyleListener();
 		addExtendedModifyListener();
-		addDocumentListener();
+		addEditorListeners();
+		addKeyListener();
+
+		logging.reveal();
 
 		Object input = getEditorInput();
-
 		Assert.isTrue(input instanceof IFileEditorInput);
-		IResource r = ((IFileEditorInput) input).getFile();
-		IMarker m;
-		try {
-			m = r.createMarker("org.cg.ftcparsermarker");
-
-			m.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-			m.setAttribute(IMarker.CHAR_START, 0);
-			m.setAttribute(IMarker.CHAR_END, 10);
-			m.setAttribute(IMarker.MESSAGE, "that's an error");
-		} catch (CoreException e1) {
-
-			e1.printStackTrace();
-		}
-
-		addEditorListeners();
+		resource = ((IFileEditorInput) input).getFile();
+		syntaxColoring = new SyntaxColoring(getStyledText(), colorManager);
+		setStyles();
 	}
 
-	private void addDocumentListener() {
-		ISourceViewer sv = getSourceViewer();
-
-		sv.getDocument().addDocumentListener(new IDocumentListener() {
+	private void addKeyListener() {
+		getStyledText().addKeyListener(new KeyListener() {
 
 			@Override
-			public void documentChanged(DocumentEvent e) {
-
+			public void keyPressed(KeyEvent e) {
 			}
 
 			@Override
-			public void documentAboutToBeChanged(DocumentEvent e) {
+			public void keyReleased(KeyEvent e) {
+				// resetting the document to a previous state by ctrl+z
+				// doesen't always trigger ExtendedModifyListener in cases
+				// when line styles should be reset
+				if (((e.stateMask & SWT.CTRL) == SWT.CTRL) && (e.keyCode == 'z'))
+					setStyles();
 			}
 		});
+
 	}
 
 	private void addExtendedModifyListener() {
-		ISourceViewer sv = getSourceViewer();
-
-		sv.getTextWidget().addExtendedModifyListener(new ExtendedModifyListener() {
+		getSourceViewer().getTextWidget().addExtendedModifyListener(new ExtendedModifyListener() {
 
 			@Override
 			public void modifyText(ExtendedModifyEvent e) {
-
-				StyleRange noStyle = new StyleRange(0, sv.getDocument().getLength(), null, null);
-
-				StyledText w = getSourceViewer().getTextWidget();
-
-				w.setStyleRange(noStyle);
-				StyleRange style = new StyleRange(e.start, 1, colorManager.getColor(IColorConstants.COMMENT),
-						colorManager.getColor(IColorConstants.NUMBER));
-
-				w.setStyleRange(style);
-
-				style = new StyleRange(0, e.start, colorManager.getColor(IColorConstants.NUMBER),
-						colorManager.getColor(IColorConstants.COMMENT));
-
-				w.setStyleRange(style);
-
-				// e.start , e.length give range of new text
-
+				synchronized (syntaxColoring) {
+					setStyles();
+				}
 			}
+
 		});
 
-	}
-
-	private void addLineStyleListener() {
-		getSourceViewer().getTextWidget().addLineStyleListener(new LineStyleListener() {
-
-			public void lineGetStyle(LineStyleEvent event) {
-				getLineStyle(event);
-			}
-		});
 	}
 
 	private void addEditorListeners() {
-		// workbenchWindow.getPartService().addPartListener(this);
-
 		FtcEditor thisEditor = this;
 		getSite().getPage().addPartListener(new IPartListener() {
 
 			@Override
 			public void partActivated(IWorkbenchPart part) {
 				if (part == thisEditor) {
-					System.out.println("activated: " + part.getTitle() + editorNumber);
 					FtcPluginClient.getDefault().onEditorActivated(thisEditor);
+					// FtcPluginClient.getDefault().addOnConnectListener(onConnectObserver);
 				}
 			}
 
@@ -174,9 +179,8 @@ public class FtcEditor extends TextEditor {
 			public void partDeactivated(IWorkbenchPart part) {
 				if (part == thisEditor) {
 					FtcPluginClient.getDefault().onEditorActivated(thisEditor);
-					System.out.println("deactivated: " + part.getTitle() + editorNumber);
+					// FtcPluginClient.getDefault().removeOnConnectListener(onConnectObserver);
 				}
-
 			}
 
 			@Override
@@ -190,51 +194,63 @@ public class FtcEditor extends TextEditor {
 
 	}
 
-	protected void getLineStyle(LineStyleEvent event) {
-
-		// IDocument doc = getDocument();
-
-		try {
-			// event.lineOffset ... index im doc, at which line starts
-
-			int startIdx = Math.max(event.lineOffset, 10);
-
-			int endIdx = startIdx + event.lineText.length();
-
-			// red wiggle line style for errors
-
-			// int lineNum = doc.getLineOfOffset(event.lineOffset) + 1;
-			// if (lineNum < 1) return; returns -1 even if in valid range
-
-			ArrayList<StyleRange> styles = new ArrayList<StyleRange>();
-			// System.out.println("Styling line" + event.lineText);
-
-			// by-foot colorization from parsed tokens
-			// VGLColorizer.getInstance().colorizeLine(lineNum,
-			// event.lineOffset, startNode, styles);
-			RGB white = new RGB(128, 128, 128);
-
-			for (int i = startIdx; i < endIdx - 2; i = i + 2) {
-				int col = (i * 20) % 128;
-				RGB rgb = new RGB(col, col, col);
-				styles.add(new StyleRange(i, 2, colorManager.getColor(rgb), colorManager.getColor(white)));
-			}
-
-			if (styles.size() > 0) {
-				event.styles = toArray(styles);
-			}
-
-		} catch (Exception e) {
-		}
-
+	private void setStyles() {
+		syntaxColoring.setText(getText());
+		syntaxColoring.setMarkers(resource);
+		syntaxColoring.setStyles();
 	}
 
-	private StyleRange[] toArray(ArrayList<StyleRange> styles) {
-		StyleRange[] styleArray = new StyleRange[styles.size()];
+	/**
+	 * That's a working implementation, it causes the markers to flicker, though
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("unused")
+	private Thread createMarkerThread() {
+		return new Thread(new Runnable() {
 
-		for (int i = 0; i < styles.size(); i++)
-			styleArray[i] = styles.get(i);
-		return styleArray;
+			@Override
+			public void run() {
+				while (!Thread.interrupted()) {
+
+					WorkbenchUtil.runJob(new IWorkspaceRunnable() {
+
+						@Override
+						public void run(IProgressMonitor monitor) throws CoreException {
+
+							Display.getDefault().asyncExec(new Runnable() {
+								@Override
+								public void run() {
+									synchronized (syntaxColoring) {
+
+										try {
+											syntaxColoring.setText(getText());
+
+											syntaxColoring.setMarkers(resource);
+											Thread.sleep(100);
+											setStyles();
+										} catch (Exception e) {
+											logging.Info("marking: " + e.getMessage());
+										}
+
+									}
+
+								}
+							});
+
+						}
+					}, resource);
+
+					try {
+						Thread.sleep(3000);
+					} catch (InterruptedException e) {
+						logging.Info("interruptd" + e.getMessage());
+					}
+				}
+
+			}
+		});
+
 	}
 
 }
