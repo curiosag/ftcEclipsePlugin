@@ -11,7 +11,7 @@ public class FtcCommandHandler extends AbstractHandler {
 	}
 
 	public Object execute(ExecutionEvent e) throws ExecutionException {
-		FtcPluginClient.getDefault().translateCommand(e.getCommand().getId());
+		FtcPluginClient.getDefault().runCommand(e.getCommand().getId());
 		return null;
 	}
 }

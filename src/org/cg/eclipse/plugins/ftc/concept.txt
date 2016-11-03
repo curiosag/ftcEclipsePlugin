@@ -9,6 +9,12 @@ optionale re-evaluation bei gleich bleibender query in syntaxelementsource.get()
 
 progress
 schöne completion proposals
+nach patch refresh syntyx colors
+AsyncWork.goUnderground ln 35 -> CancellationException
+
+
+comments??
+completions with description
 
 bug close editor and reopen file -> failed to create the part's control
 

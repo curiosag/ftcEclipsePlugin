@@ -18,14 +18,13 @@ import com.google.common.base.Optional;
 
 public class MessageConsoleLogger extends AbstractLogger {
 
-	private final String consoleName = "ftc";
+	private final String consoleName = PluginConst.MESSAGECONSOLE_NAME;
 	private MessageConsole console;
 	private MessageConsoleStream outputStream;
 	private static MessageConsoleLogger _default;
-
+	
 	private MessageConsole findConsole(String name) {
-		ConsolePlugin plugin = ConsolePlugin.getDefault();
-		IConsoleManager conMan = plugin.getConsoleManager();
+		IConsoleManager conMan = getConsoleManager();
 		IConsole[] existing = conMan.getConsoles();
 		for (int i = 0; i < existing.length; i++)
 			if (name.equals(existing[i].getName()))
@@ -34,6 +33,12 @@ public class MessageConsoleLogger extends AbstractLogger {
 		MessageConsole myConsole = new MessageConsole(name, null);
 		conMan.addConsoles(new IConsole[] { myConsole });
 		return myConsole;
+	}
+	
+	private IConsoleManager getConsoleManager() {
+		ConsolePlugin plugin = ConsolePlugin.getDefault();
+		IConsoleManager conMan = plugin.getConsoleManager();
+		return conMan;
 	}
 
 	public static MessageConsoleLogger getDefault() {

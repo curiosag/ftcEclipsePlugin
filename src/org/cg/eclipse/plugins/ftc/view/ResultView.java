@@ -32,8 +32,15 @@ public class ResultView extends ViewPart {
 	}
 
 	public void displayTable(TableModel model) {
+		table.clearAll();
 		
-		table.setRedraw( false );
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		while ( table.getColumnCount() > 0 ) {
 		    table.getColumns()[ 0 ].dispose();
 		}
@@ -50,8 +57,6 @@ public class ResultView extends ViewPart {
 			for (int j = 0; j < colCount; j++)	
 				item.setText(j, model.getValueAt(i, j).toString());
 		}
-		
-		table.setRedraw( true );
 		
 		for (int i = 0; i < colCount; i++) 
 			table.getColumn(i).pack();

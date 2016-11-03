@@ -12,12 +12,14 @@ import org.cg.common.interfaces.OnTextFieldChangedEvent;
 import org.cg.common.interfaces.OnValueChanged;
 import org.cg.common.interfaces.Progress;
 import org.cg.common.io.PreferencesStringStorage;
+import org.cg.common.util.Op;
 import org.cg.eclipse.plugins.ftc.FtcEditor;
 import org.cg.eclipse.plugins.ftc.MessageConsoleLogger;
 import org.cg.eclipse.plugins.ftc.PluginConst;
 import org.cg.eclipse.plugins.ftc.WorkbenchUtil;
 import org.cg.eclipse.plugins.ftc.view.ResultView;
 import org.cg.ftc.ftcClientJava.BaseClient;
+import org.cg.ftc.ftcClientJava.Const;
 import org.cg.ftc.ftcClientJava.FrontEnd;
 import org.cg.ftc.ftcClientJava.GuiClient;
 import org.cg.ftc.ftcClientJava.Observism;
@@ -26,40 +28,58 @@ import org.cg.ftc.ftcClientJava.ftcClientModel;
 import org.cg.ftc.shared.interfaces.SyntaxElementSource;
 import org.cg.ftc.shared.structures.ClientSettings;
 import org.cg.ftc.shared.structures.Completions;
+import org.cg.ftc.shared.structures.RunState;
+import org.cg.ftc.shared.uglySmallThings.Events;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.core.runtime.jobs.IJobFunction;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
+import com.google.common.eventbus.Subscribe;
 
 import com.google.common.base.Optional;
 
 public class FtcPluginClient extends BaseClient implements FrontEnd {
 
 	private static FtcPluginClient _default;
-	
+
 	private ActionListener actionListener;
 	private Boolean authenticationAttempted = false;
 
 	private final ClientSettings clientSettings = ClientSettings.instance(GuiClient.class);
 	private final ftcClientModel model = new ftcClientModel(clientSettings);
-	private final Progress progress = createProgress();
+	private final CancellableProgress progress = createProgress();
 	private final ftcClientController controller = new ftcClientController(model, logging, getConnector(),
 			clientSettings,
 			new PreferencesStringStorage(org.cg.ftc.shared.uglySmallThings.Const.PREF_ID_CMDHISTORY, GuiClient.class),
 			progress);
 
 	private Optional<FtcEditor> activeEditor = Optional.absent();
+	private final IPreferenceStore preferenceStore = new FtcPreferenceStore(clientSettings);
 
-	private class OnConnectObservable extends Observable
-	{
+	public IPreferenceStore getPreferenceStore() {
+		return preferenceStore;
+	};
+
+	private class OnConnectObservable extends Observable {
 		@Override
 		public void notifyObservers() {
 			setChanged();
-	        notifyObservers(null);
-	    }
-		
+			notifyObservers(null);
+		}
+
 	}
-	
+
+	public void authenticate() {
+		controller.authenticate();
+	}
+
 	private Observable onConnectObservable = new OnConnectObservable();
-	
+
 	public SyntaxElementSource getSyntaxElementSource() {
 		return controller;
 	}
@@ -114,32 +134,78 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 
 		addQueryTextChangedListener(model.queryText.getListener());
 		logging.setDelegate(MessageConsoleLogger.getDefault());
+
+		registerForLongOperationEvent();
 	}
 
-	private static Progress createProgress() {
+	private CancellableProgress createProgress() {
+		FtcPluginClient client = this;
 
-		return new Progress() {
+		return new CancellableProgress() {
 
-			int max;
+			int curr;
+			SubMonitor m;
+			private boolean cancelled;
 
 			@Override
 			public void init(int max) {
-				this.max = max;
+				cancelled = false;
+				curr = 0;
+				Job.create("ftc composite query ", new IJobFunction() {
+
+					@Override
+					public IStatus run(IProgressMonitor monitor) {
+
+						m = SubMonitor.convert(monitor, max);
+						while (!cancelled && curr < max) {
+							if (monitor.isCanceled())
+								hdlInternallyCancelled(client);
+
+							try {
+								Thread.sleep(500);
+							} catch (InterruptedException e) {
+							}
+						}
+						m.done();
+						return Status.OK_STATUS;
+					}
+
+					private void hdlInternallyCancelled(FtcPluginClient client) {
+						Display.getDefault().asyncExec(new Runnable() {
+							public void run() {
+								client.runCommand(Const.cancelExecution);
+							}
+						});
+						cancelled = true;
+					}
+				}).schedule();
+
 			}
 
 			@Override
 			public void announce(int progress) {
-				System.out.println(String.format("%d/%d", progress, max));
+				if (!cancelled)
+					m.worked(progress - curr);
+				curr = progress;
+			}
+
+			@Override
+			public void cancel() {
+				cancelled = true;
 			}
 		};
 	}
 
-	public void translateCommand(String commandId) {
+	public void runCommand(String commandId) {
 		Check.notNull(actionListener);
 
 		if (activeEditor.isPresent()) {
 			model.caretPositionQueryText = activeEditor.get().getCaretOffset();
 			model.queryText.setValue(activeEditor.get().getText());
+
+			if (commandId.equals(Const.cancelExecution))
+				progress.cancel();
+
 			actionListener.actionPerformed(new ActionEvent(this, 0, commandId));
 		}
 
@@ -239,20 +305,27 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 		}
 	};
 
-
-	public void addOnConnectListener(Observer o)
-	{
+	public void addOnConnectListener(Observer o) {
 		onConnectObservable.addObserver(o);
 	}
-	
-	public void removeOnConnectListener(Observer o)
-	{
+
+	public void removeOnConnectListener(Observer o) {
 		onConnectObservable.deleteObserver(o);
 	}
-	
-	private void onConnect(){
+
+	private void onConnect() {
 		onConnectObservable.notifyObservers();
-	};
-	
-	
+	}
+
+	private void registerForLongOperationEvent() {
+		Events.ui.register(this);
+	}
+
+	@Subscribe
+	public void eventBusOnLongOperation(RunState state) {
+		report(!Op.in(state, RunState.AUTHENTICATION_STARTED, RunState.QUERYEXEC_STARTED));
+	}
+
+	private void report(boolean b) {
+	}
 }

@@ -24,6 +24,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 
 	private static final String DEFAULT_IMAGE = "$nl$/icons/sample.gif"; //$NON-NLS-1$
+	private static final String TEMPLATE_IMAGE = "$nl$/icons/template.gif"; //$NON-NLS-1$
 	private TemplateContextType templateContextType = null;
 	private EclipseStyleCompletions currentCompletions = null;
 
@@ -106,11 +107,11 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 	@Override
 	protected Image getImage(Template template) {
 		ImageRegistry registry = Activator.getDefault().getImageRegistry();
-		Image image = registry.get(DEFAULT_IMAGE);
+		Image image = registry.get(TEMPLATE_IMAGE);
 		if (image == null) {
-			ImageDescriptor desc = AbstractUIPlugin.imageDescriptorFromPlugin("org.cg.ftceditor.FtcEditor", DEFAULT_IMAGE);
-			registry.put(DEFAULT_IMAGE, desc);
-			image = registry.get(DEFAULT_IMAGE);
+			ImageDescriptor desc = AbstractUIPlugin.imageDescriptorFromPlugin(PluginConst.PLUGIN_NAME, TEMPLATE_IMAGE);
+			registry.put(TEMPLATE_IMAGE, desc);
+			image = registry.get(TEMPLATE_IMAGE);
 
 		}
 		return image;

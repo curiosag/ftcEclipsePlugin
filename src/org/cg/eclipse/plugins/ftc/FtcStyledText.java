@@ -16,7 +16,7 @@ public class FtcStyledText extends StyledText {
 	 */
 	@Override
 	public void setStyleRange(StyleRange range) {
-		// StyleRange[] curr = getStyleRanges(range.start, range.length, false);
+		Check.notNull(range);
 		StyleRange curr = getStyleRangeAtOffset(range.start);
 		if (!similar(curr, range))
 			super.setStyleRange(range);
@@ -26,16 +26,6 @@ public class FtcStyledText extends StyledText {
 		return curr != null && curr.length == range.length && sameColor(curr.foreground, range.foreground)
 				&& curr.underline == range.underline && curr.underlineStyle == range.underlineStyle
 				&& sameColor(curr.underlineColor, range.underlineColor);
-	}
-
-	private boolean similar_(StyleRange[] curr, StyleRange range) {
-		Check.notNull(range);
-		for (int i = 0; i < curr.length; i++)
-			if (!(sameColor(curr[i].foreground, range.foreground) && curr[i].underline == range.underline
-					&& curr[i].underlineStyle == range.underlineStyle
-					&& sameColor(curr[i].underlineColor, range.underlineColor)))
-				return false;
-		return true;
 	}
 
 	private boolean sameColor(org.eclipse.swt.graphics.Color c1, org.eclipse.swt.graphics.Color c2) {
