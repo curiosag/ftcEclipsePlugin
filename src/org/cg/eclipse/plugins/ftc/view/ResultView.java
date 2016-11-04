@@ -32,18 +32,13 @@ public class ResultView extends ViewPart {
 	}
 
 	public void displayTable(TableModel model) {
-		table.clearAll();
 		
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+		table.setRedraw(false);
+		table.removeAll();
 		while ( table.getColumnCount() > 0 ) {
 		    table.getColumns()[ 0 ].dispose();
 		}
+		table.setRedraw(true);
 		
 		int colCount = model.getColumnCount();
 		
@@ -52,13 +47,13 @@ public class ResultView extends ViewPart {
 			column.setText(model.getColumnName(i));
 		}
 
-		for (int i = 0; i < model.getRowCount(); i++){
+		for (int i = 0; i < model.getRowCount(); i++) {
 			TableItem item = new TableItem(table, SWT.NONE);
-			for (int j = 0; j < colCount; j++)	
+			for (int j = 0; j < colCount; j++)
 				item.setText(j, model.getValueAt(i, j).toString());
 		}
-		
-		for (int i = 0; i < colCount; i++) 
+
+		for (int i = 0; i < colCount; i++)
 			table.getColumn(i).pack();
 	}
 

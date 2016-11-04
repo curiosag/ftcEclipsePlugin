@@ -32,7 +32,7 @@ import org.eclipse.swt.events.KeyListener;
 
 public class FtcEditor extends TextEditor {
 
-	private final static ColorManager colorManager = new ColorManager();
+	private final static ColorManager colorManager = ColorManager.getDefault();
 	private SyntaxColoring syntaxColoring;
 
 	private final FtcSourceViewerConfiguration sourceViewerConfiguration;

@@ -5,12 +5,13 @@
    <extension
          point="org.eclipse.ui.editors">
       <editor
-            name="Ftc Editor"
-            extensions="ftsql"
-            icon="icons/sample.gif"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             class="org.cg.eclipse.plugins.ftc.FtcEditor"
-            id="org.cg.eclipse.ftcplugin.FtcEditor">
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="ftsql"
+            filenames="*.sql"
+            icon="icons/gft.png"
+            id="org.cg.eclipse.ftcplugin.FtcEditor"
+            name="Fusion Tables Console">
       </editor>
    </extension>
 
@@ -69,8 +70,8 @@
        <view
              category="ftcEditor"
              class="org.cg.eclipse.plugins.ftc.view.ResultView"
-             icon="icons/sample.gif"
-             id="ftceditor.view.ResultView"
+             icon="icons/gft.png"
+             id="org.cg.eclipse.plugins.ftc.view.ResultView"
              name="Result Data">
        </view>
     </extension>
@@ -140,12 +141,46 @@
     </extension>
     <extension
           point="org.eclipse.ui.bindings">
+          <!--  M1-ctrl M2-shift M3-alt 
+          http://help.eclipse.org/mars/index.jsp?topic=%2Forg.eclipse.platform.doc.isv%2Freference%2Fapi%2Forg%2Feclipse%2Fui%2Fprogress%2FIProgressConstants.html
+          -->
        <key
+             commandId="%ftc.listTables"
+             contextId="org.eclipse.ui.contexts.window"
+             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+             sequence="M1+T">
+       </key>
+       <key
+             commandId="%ftc.execSql"
+             contextId="org.eclipse.ui.contexts.window"
+             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+             sequence="M1+R">
+       </key>
+       <key
+             commandId="%ftc.cancelExecution"
+             contextId="org.eclipse.ui.contexts.window"
+             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+             sequence="M1+C">
+       </key>
+       <key
+             commandId="%ftc.viewPreprocessedQuery"
+             contextId="org.eclipse.ui.contexts.window"
+             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+             sequence="M3+R">
+       </key>
+        <key
+             commandId="%ftc.execAllSql"
+             contextId="org.eclipse.ui.contexts.window"
+             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+             sequence="M1+M3+R">
+       </key>
+              <key
              commandId="%ftc.listTables"
              contextId="org.eclipse.ui.contexts.window"
              schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
              sequence="M1+1">
        </key>
+       
     </extension>
     <extension
           point="org.eclipse.ui.menus">
@@ -240,31 +275,13 @@
        </initializer>
     </extension>
     <extension
-          point="org.eclipse.ui.editors.markerAnnotationSpecification"
-          id="ftcMarkerAnnotationSpecification" name="Ftc Marker Annotation">
-       <specification
-             annotationType="org.cg.eclipse.plugins.ftc.parseProblemAnnotation"
-             includeOnPreferencePage="true"
-             label="FtcAnnotation"
-			icon="icons/sample.gif"
-			overviewRulerPreferenceKey="clruler"
-			overviewRulerPreferenceValue="true"
-			colorPreferenceKey="clcolor"
-			colorPreferenceValue="255,255,0"
-			textPreferenceKey="cltext"
-			textPreferenceValue="false"
-			verticalRulerPreferenceKey="clvertical"
-			verticalRulerPreferenceValue="true"
-			textStylePreferenceKey="clstyle"
-            textStylePreferenceValue="NONE">
-       </specification>
-    </extension>
-    <extension
-          point="org.eclipse.ui.editors.annotationTypes">
-       <type markerSeverity="0"
-            super="org.eclipse.ui.workbench.texteditor.info"
-            name="org.cg.eclipse.plugins.ftc.parseProblemAnnotation"
-            markerType="org.cg.ftcparsermarker"/>
+          point="org.eclipse.ui.perspectives">
+       <perspective
+             class="org.cg.eclipse.plugins.ftc.FtcPerspective"
+             icon="icons/gft.png"
+             id="org.cg.eclipse.plugins.ftc.perspective"
+             name="ftc">
+       </perspective>
     </extension>
     
 </plugin>

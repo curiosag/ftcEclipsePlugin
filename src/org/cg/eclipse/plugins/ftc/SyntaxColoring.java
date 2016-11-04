@@ -27,7 +27,7 @@ public class SyntaxColoring {
 	Color yellow;
 	Color black;
 	Color blue;
-	
+
 	public SyntaxColoring(StyledText styledText, ColorManager colorManager) {
 		this.styledText = styledText;
 
@@ -44,7 +44,7 @@ public class SyntaxColoring {
 		elementColors.put(SyntaxElementType.stringLiteral, blue);
 		elementColors.put(SyntaxElementType.numericLiteral, red);
 		elementColors.put(SyntaxElementType.identifier, red);
-				
+
 	}
 
 	public Color getColor(SyntaxElementType type) {
@@ -80,7 +80,7 @@ public class SyntaxColoring {
 
 		for (SyntaxElement t : tokens)
 			if (t.from >= idxFrom && t.to <= idxTo)
-				result.add(getStyleRange(t, getColor(t.type)));
+					result.add(getStyleRange(t, getColor(t.type)));
 
 		return result;
 	}

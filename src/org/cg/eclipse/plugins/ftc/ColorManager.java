@@ -15,9 +15,17 @@ public class ColorManager {
 
 	protected Map<RGB, Color> fColorTable = new HashMap<RGB, Color>(10);
 
-	
-	
-	
+	private static ColorManager _default;
+
+	private ColorManager() {
+	}
+
+	public static ColorManager getDefault() {
+		if (_default == null)
+			_default = new ColorManager();
+		return _default;
+	}
+
 	public void dispose() {
 		Iterator<Color> e = fColorTable.values().iterator();
 		while (e.hasNext())

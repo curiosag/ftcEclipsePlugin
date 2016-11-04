@@ -32,7 +32,7 @@ public class FtcSourceViewerConfiguration extends SourceViewerConfiguration {
 
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		PresentationReconciler reconciler = new PresentationReconciler();
-
+		
 		 addDamagerRepairer(reconciler, new	 DefaultDamagerRepairer(getScanner()));
 
 		return reconciler;
