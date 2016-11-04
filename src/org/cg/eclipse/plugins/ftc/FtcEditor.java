@@ -23,7 +23,6 @@ import java.util.Observer;
 
 import org.cg.common.check.Check;
 import org.cg.eclipse.plugins.ftc.glue.FtcPluginClient;
-import org.cg.ftc.ftcClientJava.Observism;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.swt.custom.StyledText;
@@ -107,7 +106,6 @@ public class FtcEditor extends TextEditor {
 	}
 
 	public void dispose() {
-		colorManager.dispose();
 		super.dispose();
 	}
 
@@ -201,7 +199,6 @@ public class FtcEditor extends TextEditor {
 		// will be added to existing styles rather than replacing them
 		syntaxColoring.setStyles();
 		syntaxColoring.setMarkers(resource);
-
 	}
 
 	/**

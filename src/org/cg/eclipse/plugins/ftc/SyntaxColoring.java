@@ -49,8 +49,6 @@ public class SyntaxColoring {
 
 	public Color getColor(SyntaxElementType type) {
 		Color result = elementColors.get(type);
-		if (result == null)
-			result = black;
 		return result;
 	}
 
@@ -79,8 +77,11 @@ public class SyntaxColoring {
 		ArrayList<StyleRange> result = new ArrayList<StyleRange>();
 
 		for (SyntaxElement t : tokens)
-			if (t.from >= idxFrom && t.to <= idxTo)
-					result.add(getStyleRange(t, getColor(t.type)));
+			if (t.from >= idxFrom && t.to <= idxTo) {
+				Color c = getColor(t.type);
+				if (c != null)
+					result.add(getStyleRange(t, c));
+			}
 
 		return result;
 	}

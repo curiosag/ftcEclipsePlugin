@@ -14,7 +14,7 @@ import org.eclipse.swt.widgets.Display;
 public class ColorManager {
 
 	protected Map<RGB, Color> fColorTable = new HashMap<RGB, Color>(10);
-
+	
 	private static ColorManager _default;
 
 	private ColorManager() {

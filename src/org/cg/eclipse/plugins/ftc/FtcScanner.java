@@ -11,7 +11,7 @@ public class FtcScanner extends RuleBasedScanner {
 		
 		IRule[] rules = new IRule[6];
 
-		rules[0] = new EndOfLineRule("#", commentToken, '\\');
+		rules[0] = new EndOfLineRule("--", commentToken, '\\');
 		rules[1] = new MultiLineRule("/*", "*/", commentToken, '\\');
 		rules[2] = new SingleLineRule("\"", "\"", stringToken, '\\');
 		rules[3] = new SingleLineRule("'", "'", stringToken, '\\');
