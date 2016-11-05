@@ -48,7 +48,6 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 	private static FtcPluginClient _default;
 
 	private ActionListener actionListener;
-	private Boolean authenticationAttempted = false;
 
 	private final ClientSettings clientSettings = ClientSettings.instance(GuiClient.class);
 	private final ftcClientModel model = new ftcClientModel(clientSettings);
@@ -65,20 +64,9 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 		return preferenceStore;
 	};
 
-	private class OnConnectObservable extends Observable {
-		@Override
-		public void notifyObservers() {
-			setChanged();
-			notifyObservers(null);
-		}
-
-	}
-
 	public void authenticate() {
 		controller.authenticate();
 	}
-
-	private Observable onConnectObservable = new OnConnectObservable();
 
 	public SyntaxElementSource getSyntaxElementSource() {
 		return controller;
@@ -93,24 +81,6 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 
 	public void onEditorActivated(FtcEditor e) {
 		activeEditor = Optional.of(e);
-
-		synchronized (authenticationAttempted) {
-			if (!authenticationAttempted) {
-				authenticationAttempted = true;
-
-				new Thread(new Runnable() {
-
-					@Override
-					public void run() {
-						logging.Info("connecting to fusion tables service");
-						controller.authenticate();
-						onConnect();
-					}
-
-				}).start();
-			}
-		}
-
 	}
 
 	public void onEditorDeactivated(FtcEditor e) {
@@ -136,6 +106,10 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 		logging.setDelegate(MessageConsoleLogger.getDefault());
 
 		registerForLongOperationEvent();
+		
+		logging.Info("connecting to fusion tables service");
+		controller.authenticate();
+
 	}
 
 	private CancellableProgress createProgress() {
@@ -304,18 +278,6 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 		public void update(Observable o, Object arg) {
 		}
 	};
-
-	public void addOnConnectListener(Observer o) {
-		onConnectObservable.addObserver(o);
-	}
-
-	public void removeOnConnectListener(Observer o) {
-		onConnectObservable.deleteObserver(o);
-	}
-
-	private void onConnect() {
-		onConnectObservable.notifyObservers();
-	}
 
 	private void registerForLongOperationEvent() {
 		Events.ui.register(this);

@@ -7,14 +7,20 @@
       <editor
             class="org.cg.eclipse.plugins.ftc.FtcEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="ftsql"
-            filenames="*.sql"
+            extensions="ftc"
             icon="icons/gft.png"
             id="org.cg.eclipse.ftcplugin.FtcEditor"
             name="Fusion Tables Console">
       </editor>
    </extension>
-
+    <extension
+          id="SqlDocumentSetupParticipant"
+          point="org.eclipse.core.filebuffers.documentSetup">
+       <participant
+             class="org.cg.eclipse.plugins.ftc.SqlDocumentSetupParticipant"
+             extensions="ftc">
+       </participant>
+    </extension>
    <extension
          id="org.cg.ftcSyntaxErrormarker"
          name="ftc syntax error"

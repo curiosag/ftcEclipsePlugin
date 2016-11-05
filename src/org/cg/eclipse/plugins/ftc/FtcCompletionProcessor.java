@@ -106,7 +106,7 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 
 	@Override
 	protected Image getImage(Template template) {
-		ImageRegistry registry = Activator.getDefault().getImageRegistry();
+		ImageRegistry registry = FtcPlugin.getDefault().getImageRegistry();
 		Image image = registry.get(TEMPLATE_IMAGE);
 		if (image == null) {
 			ImageDescriptor desc = AbstractUIPlugin.imageDescriptorFromPlugin(PluginConst.PLUGIN_NAME, TEMPLATE_IMAGE);

@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Ftcplugin
 Bundle-SymbolicName: org.cg.eclipse.plugins.ftc;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: org.cg.eclipse.plugins.ftc.Activator
+Bundle-Activator: org.cg.eclipse.plugins.ftc.FtcPlugin
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,

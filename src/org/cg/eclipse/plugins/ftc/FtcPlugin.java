@@ -7,25 +7,20 @@ import org.osgi.framework.BundleContext;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class Activator extends AbstractUIPlugin {
+public class FtcPlugin extends AbstractUIPlugin {
 		
 	// The plug-in ID
 	public static final String PLUGIN_ID = "ftcEditor"; //$NON-NLS-1$
+	public final static String SQL_PARTITIONING = "sql_partitioning";
 
 	// The shared instance
-	private static Activator plugin;
-	
-	private int counter = 0;
-	
-	public int incCounter()
-	{
-		return counter++;
-	}
+	private static FtcPlugin plugin;
+
 	
 	/**
 	 * The constructor
 	 */
-	public Activator() {
+	public FtcPlugin() {
 	}
 
 	/*
@@ -52,7 +47,7 @@ public class Activator extends AbstractUIPlugin {
 	 *
 	 * @return the shared instance
 	 */
-	public static Activator getDefault() {
+	public static FtcPlugin getDefault() {
 		return plugin;
 	}
 
@@ -66,5 +61,5 @@ public class Activator extends AbstractUIPlugin {
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
-
+	
 }
