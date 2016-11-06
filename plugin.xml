@@ -7,7 +7,7 @@
       <editor
             class="org.cg.eclipse.plugins.ftc.FtcEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="ftc"
+            extensions="ftc, sql"
             icon="icons/gft.png"
             id="org.cg.eclipse.ftcplugin.FtcEditor"
             name="Fusion Tables Console">
@@ -18,7 +18,7 @@
           point="org.eclipse.core.filebuffers.documentSetup">
        <participant
              class="org.cg.eclipse.plugins.ftc.SqlDocumentSetupParticipant"
-             extensions="ftc">
+             extensions="ftc, sql">
        </participant>
     </extension>
    <extension
@@ -85,7 +85,7 @@
           point="org.eclipse.ui.commands">
        <category
              id="org.cg.eclipse.plugins.ftc.commands"
-             name="Ftc Commands">
+             name="Fu Commands">
        </category>
        <command
              categoryId="org.cg.eclipse.plugins.ftc.commands"
@@ -95,7 +95,7 @@
        <command
              categoryId="org.cg.eclipse.plugins.ftc.commands"
              id="%ftc.execSql"
-             name="%ftc.tooltipCancelExecSql">
+             name="%ftc.tooltipExecSql">
        </command>
        <command
              categoryId="org.cg.eclipse.plugins.ftc.commands"
@@ -110,7 +110,7 @@
        <command
              categoryId="org.cg.eclipse.plugins.ftc.commands"
              id="%ftc.cancelExecution"
-             name="%ftc.tooltipCancelExecSql">
+             name="Cancel Execution">
        </command>
        <command
              categoryId="org.cg.eclipse.plugins.ftc.commands"
@@ -166,7 +166,7 @@
              commandId="%ftc.cancelExecution"
              contextId="org.eclipse.ui.contexts.window"
              schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-             sequence="M1+C">
+             sequence="M1+M2+C">
        </key>
        <key
              commandId="%ftc.viewPreprocessedQuery"
@@ -254,7 +254,7 @@
              id="%ftc.cancelExecution"
              icon="icons/cancel.png"             
              commandId="%ftc.cancelExecution"
-             tooltip="%ftc.tooltipCancelExecSql">
+             tooltip="Cancel Execution">
        </command>
        <command
              id="%ftc.refreshTables"
@@ -271,7 +271,7 @@
        <page
              class="org.cg.eclipse.plugins.ftc.preference.Preferences"
              id="org.cg.eclipse.plugins.ftc.preference.Preferences"
-             name="Ftc Preferences">
+             name="Fusion Tables Console">
        </page>
     </extension>
     <extension
@@ -286,7 +286,7 @@
              class="org.cg.eclipse.plugins.ftc.FtcPerspective"
              icon="icons/gft.png"
              id="org.cg.eclipse.plugins.ftc.perspective"
-             name="ftc">
+             name="Fusion Tables">
        </perspective>
     </extension>
     

@@ -21,17 +21,8 @@ public class FtcTemplateProposal extends TemplateProposal {
 		super(template, new FtcDocumentTemplateContext(getDc(context), template), region, image, relevance);
 	}
 	
-	private FtcDocumentTemplateContext getFtcContext()
-	{
-		Check.isTrue(getContext() instanceof FtcDocumentTemplateContext);
-		return (FtcDocumentTemplateContext) getContext();
-	}
-	
 	@Override
 	public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
-		FtcDocumentTemplateContext context = getFtcContext();
-		context.setOffset(offset);
-		context.setText(viewer.getTextWidget().getText());
 		super.apply(viewer, trigger, stateMask, offset);
 	}
 

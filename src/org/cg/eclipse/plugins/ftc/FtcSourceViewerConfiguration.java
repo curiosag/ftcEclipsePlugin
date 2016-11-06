@@ -70,7 +70,7 @@ public class FtcSourceViewerConfiguration extends SourceViewerConfiguration {
 
 		ContentAssistant assistant = new ContentAssistant();
 		assistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
-		assistant.setContentAssistProcessor(new FtcCompletionProcessor(), IDocument.DEFAULT_CONTENT_TYPE);
+		assistant.setContentAssistProcessor(new FtcCompletionProcessor(sourceViewer), IDocument.DEFAULT_CONTENT_TYPE);
 
 		assistant.enableAutoActivation(false);
 		// assistant.setAutoActivationDelay(500);

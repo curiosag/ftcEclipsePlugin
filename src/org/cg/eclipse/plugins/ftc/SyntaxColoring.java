@@ -251,7 +251,8 @@ public class SyntaxColoring {
 
 		for (SyntaxElement e : tokens) {
 			IMarker marker = markerMap.get(e.from);
-			if (marker == null)
+			
+			if (marker == null && (e.type == SyntaxElementType.error || e.hasSemanticError()))
 				createMarker(r, e);
 		}
 

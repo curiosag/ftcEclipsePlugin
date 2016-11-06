@@ -13,6 +13,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.TemplateCompletionProcessor;
 import org.eclipse.jface.text.templates.TemplateContext;
@@ -23,10 +24,14 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 
-	private static final String DEFAULT_IMAGE = "$nl$/icons/sample.gif"; //$NON-NLS-1$
 	private static final String TEMPLATE_IMAGE = "$nl$/icons/template.gif"; //$NON-NLS-1$
 	private TemplateContextType templateContextType = null;
 	private EclipseStyleCompletions currentCompletions = null;
+	private final ISourceViewer sourceViewer;
+	
+	public FtcCompletionProcessor(ISourceViewer sourceViewer) {
+		this.sourceViewer = sourceViewer;
+	}
 
 	private TemplateContextType getTemplateContextType() {
 		ContributionContextTypeRegistry registry = new ContributionContextTypeRegistry();
@@ -45,7 +50,7 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 		currentCompletions = getFtcCompletions(viewer.getTextWidget().getText(), documentOffset);
 		
 		ICompletionProposal[] templates = super.computeCompletionProposals(viewer, documentOffset);
-		ICompletionProposal[] completions = getModelElementProposals(currentCompletions.modelElements, documentOffset);
+		ICompletionProposal[] completions = getModelElementProposals(currentCompletions.modelElements, documentOffset, sourceViewer.getSelectedRange().y);
 
 		ICompletionProposal[] result = new ICompletionProposal[templates.length + completions.length];
 		
@@ -66,21 +71,29 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 		return FtcPluginClient.getDefault().getCompletions(text, documentOffset);
 	}
 
-	private static ICompletionProposal[] getModelElementProposals(List<ModelElementCompletion> modelElements, int documentOffset) {
+	private static ICompletionProposal[] getModelElementProposals(List<ModelElementCompletion> modelElements, int replacementOffset, int replacementLength) {
 		ICompletionProposal[] result = new ICompletionProposal[modelElements.size()];
 		
 		int i = 0;
 		for (ModelElementCompletion e : modelElements) {
-			result[i] = new CompletionProposal(e.getPatch(), documentOffset, 0, documentOffset);
+			result[i] = new CompletionProposal(e.getPatch(), replacementOffset, replacementLength, e.getPatch().length());
 			i++;
 		}
 		
 		return result;
 	}
+	
+	/**
+	 * calculates a list of completion proposals based on the provided information
+	 *
+	 * @param text the complete current editor text
+	 * @param replacementOffset the offset of the text to be replaced by completions
+	 * @param replacementLength the length of the text to be replaced by completions
+	 */
 
-	public static ICompletionProposal[] getModelElementProposals(String text, int documentOffset)
+	public static ICompletionProposal[] getModelElementProposals(String text, int replacementOffset, int replacementLength)
 	{
-		return getModelElementProposals(getFtcCompletions(text, documentOffset).modelElements, documentOffset);
+		return getModelElementProposals(getFtcCompletions(text, replacementOffset).modelElements, replacementOffset, replacementLength);
 	}
 	
 	@Override
