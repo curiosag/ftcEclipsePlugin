@@ -10,17 +10,15 @@
  *******************************************************************************/
 package org.cg.eclipse.plugins.ftc;
 
+import org.cg.common.check.Check;
 import org.eclipse.jface.text.templates.GlobalTemplateVariables;
+import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.TemplateContextType;
 
-
-/**
- * A very simple context type.
- */
 public class FtcContextType extends TemplateContextType {
 
 	public static final String TYPE= "org.cg.ftc"; //$NON-NLS-1$
-
+	
 	public FtcContextType() {
 		addGlobalResolvers();
 	}

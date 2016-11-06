@@ -18,15 +18,16 @@ public class EclipseStyleCompletions {
 			if (completion instanceof ModelElementCompletion)
 				modelElements.add((ModelElementCompletion) completion);
 			if (completion instanceof CodeSnippetCompletion)
-				templates.add(new CodeSnippetCompletion(completion.completionType, completion.displayName, adjust(completion.getPatch())));
+				templates.add(new CodeSnippetCompletion(completion.completionType, completion.displayName,
+						adjust(completion.getPatch())));
 		}
 	}
 
 	private String adjust(String patch) {
 		String result = patch.replace("${cursor}", "");
 		if (result.indexOf("${t}") >= 0)
-			result.replace("${c}", "col");
-		
-		return result;
+			return result.replace("${c}", "column");
+		else
+			return result;
 	}
 }

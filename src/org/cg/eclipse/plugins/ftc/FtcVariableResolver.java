@@ -15,14 +15,16 @@ public class FtcVariableResolver extends TemplateVariableResolver {
 	@Override
 	protected String[] resolveAll(TemplateContext context) {
 
-		TemplateApplicationCircumstances circumstances = TemplateApplicationCircumstances.getDefault();
-		String pattern = circumstances.getTemplate().getPattern();
+		Check.isTrue(context instanceof FtcDocumentTemplateContext);
+		FtcDocumentTemplateContext ftcContext = (FtcDocumentTemplateContext) context;
+		
+		String pattern = ftcContext.getTemplate().getPattern();
 		Check.notNull(pattern);
 
-		String currentText = circumstances.getText();
-		String patchedText = StringUtil.insert(currentText, circumstances.getOffset(), prepareForParsing(pattern));
+		String currentText = ftcContext.getText();
+		String patchedText = StringUtil.insert(currentText, ftcContext.getOffset(), prepareForParsing(pattern));
 		// a "${t}" gets changed to "  t " for allow correct parsing, so the index must be at the "t" rather than "$"
-		int variablePosition = circumstances.getOffset() + (pattern.indexOf(String.format("${%s}", getType()))) + 2;
+		int variablePosition = ftcContext.getOffset() + (pattern.indexOf(String.format("${%s}", getType()))) + 2;
 
 		MessageConsoleLogger.getDefault().Info("* variable resolver *");
 		MessageConsoleLogger.getDefault().Info(patchedText);
