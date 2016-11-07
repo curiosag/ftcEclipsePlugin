@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.TableItem;
 import javax.swing.table.TableModel;
 
 import org.cg.eclipse.plugins.ftc.PluginConst;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -25,6 +26,7 @@ public class ResultView extends ViewPart {
 	private Table table;
 
 	public ResultView() {
+		TableViewer t;
 	}
 
 	public void createPartControl(Composite parent) {
@@ -52,6 +54,7 @@ public class ResultView extends ViewPart {
 
 		int colCount = model.getColumnCount();
 
+		
 		for (int i = 0; i < colCount; i++) {
 			TableColumn column = new TableColumn(table, SWT.NONE);
 			column.setText(model.getColumnName(i));
@@ -79,11 +82,20 @@ public class ResultView extends ViewPart {
 			}
 
 			private Object getSelectionText() {
-				String result = "";
+				StringBuffer result = new StringBuffer();
 				TableItem[] selection = table.getSelection();
 				for (int i = 0; i < selection.length; i++)
-					result += selection[i].getText() + " ";
-				return result;
+					appendLine(result, selection[i]);
+				return result.toString();
+			}
+
+			private void appendLine(StringBuffer result, TableItem item) {
+				for(int j = 0; j < table.getColumnCount(); j++)
+				{	
+					result.append(item.getText(j));
+					result.append(" ");
+				}
+				result.append("\n");
 			}
 
 			@Override
