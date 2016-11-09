@@ -9,13 +9,20 @@ import org.eclipse.swt.widgets.Composite;
 
 public class FtcSourceViewer extends SourceViewer {
 
-	private IResource resource;
+	private final IResource resource;
+	private final SyntaxColoring syntaxColoring;
 
 	public FtcSourceViewer(IResource resource, Composite parent, IVerticalRuler ruler, IOverviewRuler overviewRuler,
 			boolean overviewRulerVisible, int styles) {
 
 		super(parent, ruler, overviewRuler, overviewRulerVisible, styles);
 		this.resource = resource;
+		this.syntaxColoring = new SyntaxColoring(this);
+	}
+	
+	public void resetSyntaxColoring()
+	{
+		getSyntaxColoring().reloadStyles();
 	}
 
 	/**
@@ -31,6 +38,10 @@ public class FtcSourceViewer extends SourceViewer {
 
 	public IResource getResource() {
 		return resource;
+	}
+
+	public SyntaxColoring getSyntaxColoring() {
+		return syntaxColoring;
 	}
 
 }

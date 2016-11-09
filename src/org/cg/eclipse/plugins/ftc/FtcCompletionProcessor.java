@@ -28,6 +28,7 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 	private TemplateContextType templateContextType = null;
 	private EclipseStyleCompletions currentCompletions = null;
 	private final ISourceViewer sourceViewer;
+	private final static char[] autoActivationChar = new char[]{'.'};
 	
 	public FtcCompletionProcessor(ISourceViewer sourceViewer) {
 		this.sourceViewer = sourceViewer;
@@ -37,6 +38,11 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 		ContributionContextTypeRegistry registry = new ContributionContextTypeRegistry();
 		registry.addContextType(FtcContextType.TYPE);
 		return registry.getContextType(FtcContextType.TYPE);
+	}
+	
+	@Override
+	public char[] getCompletionProposalAutoActivationCharacters() {
+		return autoActivationChar;
 	}
 	
 	@Override

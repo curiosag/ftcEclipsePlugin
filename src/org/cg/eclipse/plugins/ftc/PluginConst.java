@@ -7,6 +7,7 @@ public class PluginConst {
 	public final static String MARKER_TYPE_MODELERROR = "org.cg.ftcModelProblemMarker";
 	public final static String PLUGIN_NAME = "org.cg.eclipse.plugins.ftc";
 	public static final String MESSAGECONSOLE_NAME = "Fusion Tables";
+	public static final Object FOCUS_DATA_VIEW = "focusDataView";
 	
 
 

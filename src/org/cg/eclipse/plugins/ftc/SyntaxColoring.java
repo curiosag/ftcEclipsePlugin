@@ -5,9 +5,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Observable;
 
 import org.cg.common.check.Check;
+import org.cg.common.util.Op;
 import org.cg.eclipse.plugins.ftc.glue.FtcPluginClient;
+import org.cg.eclipse.plugins.ftc.preference.SyntaxStyle;
+import org.cg.eclipse.plugins.ftc.preference.SyntaxStyleSettings;
 import org.cg.ftc.shared.interfaces.SyntaxElement;
 import org.cg.ftc.shared.interfaces.SyntaxElementType;
 import org.eclipse.core.resources.IMarker;
@@ -16,45 +20,25 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.source.IAnnotationModel;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.ui.texteditor.AbstractMarkerAnnotationModel;
 
-public class SyntaxColoring {
+public class SyntaxColoring extends Observable {
 
+	private static final boolean debug = false;
 	private List<SyntaxElement> tokens = new ArrayList<SyntaxElement>();
-	private HashMap<SyntaxElementType, Color> elementColors = new HashMap<SyntaxElementType, Color>();
-
+	private HashMap<SyntaxElementType, SyntaxStyle> syntaxStyles = new HashMap<SyntaxElementType, SyntaxStyle>();
 	private final String TOKEN_TEXT = "token_text";
-
-	Color red;
-	Color yellow;
-	Color black;
-	Color blue;
-	Color green;
 
 	private FtcSourceViewer sourceViewer;
 	private String text = "";
 
+	private final SyntaxStyle defaultStyle = new SyntaxStyle("", SyntaxElementType.unknown, true, new RGB(0, 0, 0),
+			false, false, false, false);
+
 	public SyntaxColoring(FtcSourceViewer sourceViewer) {
 		this.sourceViewer = sourceViewer;
-		ColorManager colorManager = ColorManager.getDefault();
-		yellow = colorManager.getColor(new RGB(255, 214, 51));
-		blue = colorManager.getColor(new RGB(0, 0, 255));
-		green = colorManager.getColor(new RGB(0, 155, 0));
-		red = colorManager.getColor(new RGB(200, 0, 0));
-		black = colorManager.getColor(new RGB(0, 0, 0));
-
-		elementColors.put(SyntaxElementType.tableName, blue);
-		elementColors.put(SyntaxElementType.columnName, blue);
-		elementColors.put(SyntaxElementType.viewName, blue);
-		elementColors.put(SyntaxElementType.alias, blue);
-
-		elementColors.put(SyntaxElementType.stringLiteral, green);
-		elementColors.put(SyntaxElementType.numericLiteral, red);
-
+		reloadStyles();
 	}
 
 	private IDocument getDocument() {
@@ -75,10 +59,17 @@ public class SyntaxColoring {
 		return (AbstractMarkerAnnotationModel) m;
 	};
 
-	public Color getColor(SyntaxElementType type) {
-		Color result = elementColors.get(type);
-		if (result == null && !type.equals(SyntaxElementType.whitespace))
-			result = black;
+	private SyntaxElementType mapType(SyntaxElementType type) {
+		if (Op.in(type, SyntaxElementType.alias, SyntaxElementType.viewName))
+			return SyntaxElementType.tableName;
+		else
+			return type;
+	}
+
+	public SyntaxStyle getStyle(SyntaxElementType type) {
+		SyntaxStyle result = syntaxStyles.get(mapType(type));
+		if (result == null)
+			result = defaultStyle;
 
 		return result;
 	}
@@ -90,7 +81,7 @@ public class SyntaxColoring {
 	 *            the text to parse
 	 */
 	public synchronized void setText(String text) {
-		this.text  = text;
+		this.text = text;
 		tokens = FtcPluginClient.getDefault().getSyntaxElementSource().get(text);
 	}
 
@@ -104,71 +95,73 @@ public class SyntaxColoring {
 	 *            range to
 	 * @return
 	 */
-	
-	public synchronized List<StyleRange> getStyles(int idxFrom, int idxTo) {
 
+	public synchronized List<StyleRange> getStyles(int idxFrom, int idxTo) {
 		ArrayList<StyleRange> result = new ArrayList<StyleRange>();
 
 		for (SyntaxElement t : tokens)
 			if (t.from >= idxFrom && t.to <= idxTo) {
-				Color c = getColor(t.type);
-				if (c != null)
-					result.add(getStyleRange(t, c));
+				SyntaxStyle c = getStyle(t.type);
+				result.add(getStyleRange(t, c));
 			}
 
 		addStructuralTokens(result, idxFrom, idxTo);
-		
-		Collections.sort(result, new Comparator<StyleRange>(){
+
+		Collections.sort(result, new Comparator<StyleRange>() {
 
 			@Override
 			public int compare(StyleRange o1, StyleRange o2) {
 				return o1.start - o2.start;
-			}});
-		
+			}
+		});
+
+		if (debug)
+			debugRanges(result);
+
 		return result;
 	}
-	
-	private static String structuralChars = "(),.;";
+
+	private void debugRanges(ArrayList<StyleRange> result) {
+		StringBuilder b = new StringBuilder();
+		for (StyleRange r : result)
+			b.append(String.format("%d %d %s\n", r.start, r.length, r.token.value));
+		MessageConsoleLogger.getDefault().Info(b.toString());
+	}
+
+	// "=" as operator is provided as token by the parser
+	// except if it appears in join statements
 	private static char eqChar = '=';
-	
-	private void addStructuralTokens(ArrayList<StyleRange> result, int idxFrom, int idxTo) {
+	private static String structuralChars = "(),.;*" + eqChar;
+
+	/**
+	 * augments ranges by structural characters. the clean version would be to
+	 * change the parser and the resulting token list, but the regression would
+	 * be rather wide spread
+	 * 
+	 * @param ranges
+	 *            current style ranges. get
+	 * @param idxFrom
+	 * @param idxTo
+	 */
+	private void addStructuralTokens(ArrayList<StyleRange> ranges, int idxFrom, int idxTo) {
+		// usually structuralChars are not contained in the token list
+		// except if they appear in a sequence of error tokens
+		// so for this case they must not be added in a duplicate fashion
+		List<Integer> indices = new ArrayList<Integer>();
+		for (StyleRange r : ranges)
+			indices.add(r.start);
+		Collections.sort(indices);
+
 		for (int i = idxFrom; i < Math.min(idxTo, text.length()); i++) {
 			String current = String.valueOf(text.charAt(i));
-			if (structuralChars.indexOf(text.charAt(i)) >= 0 || specialCaseEqInJoinStatement(result, i))
-				result.add(getStyleRange(SyntaxElement.create(current, i, i, 0, SyntaxElementType.unknown), black));
+			if (Collections.binarySearch(indices, i) < 0 && (structuralChars.indexOf(text.charAt(i)) >= 0))
+				ranges.add(
+						getStyleRange(SyntaxElement.create(current, i, i, 0, SyntaxElementType.unknown), defaultStyle));
 		}
 	}
 
-	private boolean specialCaseEqInJoinStatement(ArrayList<StyleRange> result, int i) {
-		// "=" as operator is provided as token by the parser, but not "=" in join statements
-		return text.charAt(i) == eqChar && ! contains(result, i);
-	}
-
-	private boolean contains(ArrayList<StyleRange> result, int i) {
-		for (StyleRange r : result) 
-			if (r.start == i)
-				return true;
-		return false;
-	}
-
-	private StyleRange getStyleRange(SyntaxElement t, Color color) {
-		StyleRange result = new StyleRange(t.from, (t.to - t.from) + 1, color, null);
-		setUnderlineStyles(t, result);
-
-		return result;
-	}
-
-	private void setUnderlineStyles(SyntaxElement t, StyleRange result) {
-		if (t.type == SyntaxElementType.error || t.hasSemanticError()) {
-			result.underline = true;
-			result.underlineStyle = SWT.UNDERLINE_SQUIGGLE;
-			result.underlineColor = red;
-		}
-		if (t.type == SyntaxElementType.error)
-			result.underlineColor = red;
-
-		if (t.hasSemanticError())
-			result.underlineColor = yellow;
+	private StyleRange getStyleRange(SyntaxElement t, SyntaxStyle c) {
+		return new StyleRange(t.from, (t.to - t.from) + 1, c, t);
 	}
 
 	private void createMarker(IResource r, SyntaxElement t) {
@@ -189,6 +182,7 @@ public class SyntaxColoring {
 	}
 
 	public synchronized void resetMarkers() {
+
 		setText(getDocument().get());
 		updateMarkers();
 
@@ -251,7 +245,7 @@ public class SyntaxColoring {
 
 		for (SyntaxElement e : tokens) {
 			IMarker marker = markerMap.get(e.from);
-			
+
 			if (marker == null && (e.type == SyntaxElementType.error || e.hasSemanticError()))
 				createMarker(r, e);
 		}
@@ -275,6 +269,25 @@ public class SyntaxColoring {
 			e.printStackTrace();
 		}
 
+	}
+
+	/**
+	 * reloads styles from SyntaxStyleSettings
+	 */
+	public void reloadStyles() {
+		List<SyntaxStyle> styleSettings = SyntaxStyleSettings.getDefault().get();
+		syntaxStyles.clear();
+		for (SyntaxStyle s : styleSettings)
+			syntaxStyles.put(s.type, s);
+		hdlChanged();
+	}
+
+	/**
+	 * observer logic
+	 */
+	private void hdlChanged() {
+		setChanged();
+		notifyObservers(this);
 	}
 
 }

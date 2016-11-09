@@ -10,7 +10,7 @@
             extensions="ftc, sql"
             icon="icons/gft.png"
             id="org.cg.eclipse.ftcplugin.FtcEditor"
-            name="Fusion Tables Console">
+            name="Fusion Tables">
       </editor>
    </extension>
     <extension
@@ -144,6 +144,10 @@
              class="org.cg.eclipse.plugins.ftc.handlers.FtcCommandHandler"
              commandId="%ftc.refreshTables">
        </handler>
+       <handler
+             class="org.cg.eclipse.plugins.ftc.handlers.FtcCommandHandler"
+             commandId="focusDataView">
+       </handler>      
     </extension>
     <extension
           point="org.eclipse.ui.bindings">
@@ -152,7 +156,7 @@
           -->
        <key
              commandId="%ftc.listTables"
-             contextId="org.eclipse.ui.contexts.window"
+             contextId="org.eclipse.ant.ui.AntEditorScope"
              schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
              sequence="M1+T">
        </key>
@@ -182,9 +186,15 @@
        </key>
               <key
              commandId="%ftc.listTables"
-             contextId="org.eclipse.ui.contexts.window"
+             contextId="org.cg.eclipse.plugins.ftc.ftcEditorScope"
              schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
              sequence="M1+1">
+       </key>
+       <key
+             commandId="focusDataView"
+             contextId="org.eclipse.ui.contexts.window"
+             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+             sequence="M3+J">
        </key>
        
     </extension>
@@ -289,5 +299,21 @@
              name="Fusion Tables">
        </perspective>
     </extension>
-    
+    <extension
+          point="org.eclipse.ui.contexts">
+       <context
+             id="org.cg.eclipse.plugins.ftc.ftcEditorScope"
+             parentId="org.eclipse.ui.textEditorScope"
+             name="ftcContext">
+       </context>
+    </extension>
+    <extension
+          point="org.eclipse.ui.preferencePages">
+       <page
+             category="org.cg.eclipse.plugins.ftc.preference.Preferences"
+             class="org.cg.eclipse.plugins.ftc.preference.SyntaxColoringPreferencePage"
+             id="org.cg.eclipse.plugins.ftc.preferences.syntaxColoring"
+             name="SyntaxColoringPreferences">
+       </page>
+    </extension>
 </plugin>

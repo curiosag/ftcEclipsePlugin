@@ -1,16 +1,10 @@
 package org.cg.eclipse.plugins.ftc.glue;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Observable;
 import java.util.Observer;
 
-import javax.swing.event.DocumentListener;
-
 import org.cg.common.check.Check;
-import org.cg.common.interfaces.OnTextFieldChangedEvent;
-import org.cg.common.interfaces.OnValueChanged;
-import org.cg.common.interfaces.Progress;
 import org.cg.common.io.PreferencesStringStorage;
 import org.cg.common.util.Op;
 import org.cg.eclipse.plugins.ftc.FtcEditor;
@@ -20,7 +14,6 @@ import org.cg.eclipse.plugins.ftc.WorkbenchUtil;
 import org.cg.eclipse.plugins.ftc.view.ResultView;
 import org.cg.ftc.ftcClientJava.BaseClient;
 import org.cg.ftc.ftcClientJava.Const;
-import org.cg.ftc.ftcClientJava.FrontEnd;
 import org.cg.ftc.ftcClientJava.GuiClient;
 import org.cg.ftc.ftcClientJava.Observism;
 import org.cg.ftc.ftcClientJava.ftcClientController;
@@ -39,15 +32,15 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchPart;
+
 import com.google.common.eventbus.Subscribe;
 
 import com.google.common.base.Optional;
 
-public class FtcPluginClient extends BaseClient implements FrontEnd {
+public class FtcPluginClient extends BaseClient {
 
 	private static FtcPluginClient _default;
-
-	private ActionListener actionListener;
 
 	private final ClientSettings clientSettings = ClientSettings.instance(GuiClient.class);
 	private final ftcClientModel model = new ftcClientModel(clientSettings);
@@ -59,6 +52,7 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 
 	private Optional<FtcEditor> activeEditor = Optional.absent();
 	private final IPreferenceStore preferenceStore = new FtcPreferenceStore(clientSettings);
+	private boolean busy;
 
 	public IPreferenceStore getPreferenceStore() {
 		return preferenceStore;
@@ -79,11 +73,11 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 		return new EclipseStyleCompletions(completions);
 	}
 
-	public void onEditorActivated(FtcEditor e) {
-		activeEditor = Optional.of(e);
+	public void onEditorActivated(IWorkbenchPart e) {
+		activeEditor = Optional.of((FtcEditor) e);
 	}
 
-	public void onEditorDeactivated(FtcEditor e) {
+	public void onEditorClosed(IWorkbenchPart e) {
 		activeEditor = Optional.absent();
 	}
 
@@ -94,19 +88,16 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 	}
 
 	private FtcPluginClient() {
-		setActionListener(controller);
-
 		model.resultData.addObserver(createResultDataObserver());
 		model.resultText.addObserver(createOpResultObserver());
 
 		model.clientId.setValue(clientSettings.clientId);
 		model.clientSecret.setValue(clientSettings.clientSecret);
 
-		addQueryTextChangedListener(model.queryText.getListener());
 		logging.setDelegate(MessageConsoleLogger.getDefault());
 
 		registerForLongOperationEvent();
-		
+
 		logging.Info("connecting to fusion tables service");
 		controller.authenticate();
 
@@ -171,70 +162,30 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 	}
 
 	public void runCommand(String commandId) {
-		Check.notNull(actionListener);
-
 		if (activeEditor.isPresent()) {
 			model.caretPositionQueryText = activeEditor.get().getCaretOffset();
 			model.queryText.setValue(activeEditor.get().getText());
 
-			if (commandId.equals(Const.cancelExecution))
-				progress.cancel();
-
-			actionListener.actionPerformed(new ActionEvent(this, 0, commandId));
+			MessageConsoleLogger.getDefault().Info(commandId);
+			
+			if (commandId.equals(PluginConst.FOCUS_DATA_VIEW)) {
+				IViewPart view = WorkbenchUtil.showView(PluginConst.RESULT_VIEW_ID);
+				view.setFocus();
+			} else {
+				if (busy && commandId.equals(Const.cancelExecution))
+					progress.cancel();
+				else {
+					if (busy)
+						logging.Info("Operation in progress...");
+					else
+						controller.actionPerformed(new ActionEvent(this, 0, commandId));
+				}
+			}
 		}
 
 	}
 
-	@Override
-	public Progress getProgressMonitor() {
-		return null;
-	}
-
-	@Override
-	public void setActionListener(ActionListener l) {
-		actionListener = l;
-	}
-
-	@Override
-	public void addClientIdChangedListener(OnTextFieldChangedEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void addClientSecretChangedListener(OnTextFieldChangedEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void addResultTextChangedListener(DocumentListener listener) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void addQueryTextChangedListener(DocumentListener listener) {
-	}
-
-	@Override
-	public void addQueryCaretChangedListener(OnValueChanged<Integer> onChange) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public Observer createClientIdObserver() {
-		return unObserver;
-	}
-
-	@Override
-	public Observer createClientSecretObserver() {
-		return unObserver;
-	}
-
-	@Override
-	public Observer createOpResultObserver() {
+	private Observer createOpResultObserver() {
 		return new Observer() {
 
 			@Override
@@ -249,13 +200,7 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 		};
 	}
 
-	@Override
-	public Observer createQueryObserver() {
-		return unObserver;
-	}
-
-	@Override
-	public Observer createResultDataObserver() {
+	private Observer createResultDataObserver() {
 		return new Observer() {
 
 			@Override
@@ -273,21 +218,12 @@ public class FtcPluginClient extends BaseClient implements FrontEnd {
 
 	}
 
-	private static Observer unObserver = new Observer() {
-		@Override
-		public void update(Observable o, Object arg) {
-		}
-	};
-
 	private void registerForLongOperationEvent() {
 		Events.ui.register(this);
 	}
 
 	@Subscribe
 	public void eventBusOnLongOperation(RunState state) {
-		report(!Op.in(state, RunState.AUTHENTICATION_STARTED, RunState.QUERYEXEC_STARTED));
-	}
-
-	private void report(boolean b) {
+		busy = Op.in(state, RunState.AUTHENTICATION_STARTED, RunState.QUERYEXEC_STARTED);
 	}
 }

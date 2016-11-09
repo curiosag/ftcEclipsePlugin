@@ -1,9 +1,19 @@
 package org.cg.eclipse.plugins.ftc.glue;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.cg.eclipse.plugins.ftc.preference.StyleAspect;
 import org.cg.ftc.shared.structures.ClientSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.resource.StringConverter;
 import org.eclipse.jface.util.IPropertyChangeListener;
 
+/**
+ * 
+ * a hybrid monster
+ *
+ */
 public class FtcPreferenceStore implements IPreferenceStore {
 
 	public final static String KEY_CLIENT_ID = "org.cg.eclipse.plugins.ftc.client_id";
@@ -12,7 +22,19 @@ public class FtcPreferenceStore implements IPreferenceStore {
 	public final static String KEY_CLIENT_AUTHTIMEOUT = "org.cg.eclipse.plugins.ftc.authtimeout";
 
 	private final ClientSettings clientSettings;
+	
+	private final Map<String, String> defaults = new HashMap<String, String>();
 
+	private static final String prefixStylePreference = "styleKey";
+	
+	public static boolean isStyleKey(String preferenceKey) {
+		return preferenceKey != null && preferenceKey.startsWith(prefixStylePreference);
+	}
+
+	public static String getStyleKey(StyleAspect aspect, String tokenName) {
+		return prefixStylePreference + ";" + aspect.name() + ";" + tokenName;
+	}
+	
 	public FtcPreferenceStore(ClientSettings clientSettings) {
 		this.clientSettings = clientSettings;
 	}
@@ -33,12 +55,16 @@ public class FtcPreferenceStore implements IPreferenceStore {
 
 	@Override
 	public boolean getBoolean(String name) {
-		return false;
+		return clientSettings.getPreferences().getBoolean(name, getDefaultBoolean(name));
 	}
 
 	@Override
 	public boolean getDefaultBoolean(String name) {
-		return false;
+		String value = defaults.get(name);
+		if (value == null)
+			return false;
+		else
+			return StringConverter.asBoolean(value);
 	}
 
 	@Override
@@ -53,7 +79,11 @@ public class FtcPreferenceStore implements IPreferenceStore {
 
 	@Override
 	public int getDefaultInt(String name) {
-		return 0;
+		String value = defaults.get(name);
+		if (value == null)
+			return 0;
+		else
+			return StringConverter.asInt(value);
 	}
 
 	@Override
@@ -63,7 +93,11 @@ public class FtcPreferenceStore implements IPreferenceStore {
 
 	@Override
 	public String getDefaultString(String name) {
-		return "";
+		String value = defaults.get(name);
+		if (value == null)
+			return "";
+		else
+			return value;
 	}
 
 	@Override
@@ -85,8 +119,10 @@ public class FtcPreferenceStore implements IPreferenceStore {
 		case KEY_CLIENT_QUERYLIMIT:
 			return clientSettings.defaultQueryLimit;
 
-		default:
-			throw new InvalidPreferenceKeyException(name);
+		default: {
+			return clientSettings.getPreferences().getInt(name, getDefaultInt(name));
+		}
+
 		}
 	}
 
@@ -104,8 +140,9 @@ public class FtcPreferenceStore implements IPreferenceStore {
 		case KEY_CLIENT_SECRET:
 			return clientSettings.clientSecret;
 
-		default:
-			throw new InvalidPreferenceKeyException(name);
+		default: {
+			return clientSettings.getPreferences().get(name, getDefaultString(name));
+		}
 		}
 	}
 
@@ -121,7 +158,7 @@ public class FtcPreferenceStore implements IPreferenceStore {
 
 	@Override
 	public void putValue(String name, String value) {
-		throw new NotImplementedException();
+		clientSettings.getPreferences().put(name, value);
 	}
 
 	@Override
@@ -140,7 +177,7 @@ public class FtcPreferenceStore implements IPreferenceStore {
 
 	@Override
 	public void setDefault(String name, int value) {
-		setValue(name, 0);
+		defaults.put(name, StringConverter.asString(value));
 	}
 
 	@Override
@@ -150,17 +187,17 @@ public class FtcPreferenceStore implements IPreferenceStore {
 
 	@Override
 	public void setDefault(String name, String defaultObject) {
-		throw new NotImplementedException();
+		defaults.put(name, defaultObject);
 	}
 
 	@Override
 	public void setDefault(String name, boolean value) {
-		throw new NotImplementedException();
+		defaults.put(name, StringConverter.asString(value));
 	}
 
 	@Override
 	public void setToDefault(String name) {
-		setValue(name, "");
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -185,7 +222,7 @@ public class FtcPreferenceStore implements IPreferenceStore {
 			break;
 
 		default:
-			throw new InvalidPreferenceKeyException(name);
+			clientSettings.getPreferences().putInt(name, value);
 		}
 		clientSettings.write();
 	}
@@ -207,14 +244,14 @@ public class FtcPreferenceStore implements IPreferenceStore {
 			break;
 
 		default:
-			throw new InvalidPreferenceKeyException(name);
+			clientSettings.getPreferences().put(name, value);
 		}
 		clientSettings.write();
 	}
 
 	@Override
 	public void setValue(String name, boolean value) {
-		throw new NotImplementedException();
+		setValue(name, StringConverter.asString(value));
 	}
 
 }

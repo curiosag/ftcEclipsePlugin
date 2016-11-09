@@ -41,7 +41,4 @@ public class ColorManager {
 		return color;
 	}
 
-	public IToken getColoredToken(RGB rgb) {
-		return new Token(new TextAttribute(getColor(rgb)));
-	}
 }
