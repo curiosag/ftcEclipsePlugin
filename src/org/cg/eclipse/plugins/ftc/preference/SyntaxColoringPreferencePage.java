@@ -3,12 +3,10 @@ package org.cg.eclipse.plugins.ftc.preference;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.cg.eclipse.plugins.ftc.FtcEditor;
 import org.cg.eclipse.plugins.ftc.FtcPlugin;
 import org.cg.eclipse.plugins.ftc.glue.FtcPluginClient;
 import org.cg.eclipse.plugins.ftc.glue.FtcPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.resource.StringConverter;
 
 // Preference page for configuring syntax coloring.
 // <p>
@@ -199,11 +197,8 @@ public class SyntaxColoringPreferencePage extends org.eclipse.jface.preference.P
 	private org.eclipse.swt.widgets.Label fColorEditorLabel;
 	private org.eclipse.swt.widgets.Button fBoldCheckBox;
 	private org.eclipse.swt.widgets.Button fEnableCheckbox;
-	// Check box for italic preference.
 	private org.eclipse.swt.widgets.Button fItalicCheckBox;
-	// Check box for strikethrough preference.
 	private org.eclipse.swt.widgets.Button fStrikethroughCheckBox;
-	// Check box for underline preference.
 	private org.eclipse.swt.widgets.Button fUnderlineCheckBox;
 	private org.eclipse.swt.widgets.Button fForegroundColorButton;
 

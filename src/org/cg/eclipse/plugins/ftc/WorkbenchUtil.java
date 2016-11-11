@@ -1,5 +1,6 @@
 package org.cg.eclipse.plugins.ftc;
 
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -15,5 +16,8 @@ public class WorkbenchUtil {
 		}
 	}
 
+	public static Shell getShell(){
+		return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+	}
 	
 }

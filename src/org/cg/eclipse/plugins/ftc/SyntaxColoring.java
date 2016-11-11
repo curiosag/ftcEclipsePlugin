@@ -68,7 +68,7 @@ public class SyntaxColoring extends Observable {
 
 	public SyntaxStyle getStyle(SyntaxElementType type) {
 		SyntaxStyle result = syntaxStyles.get(mapType(type));
-		if (result == null)
+		if (result == null || ! result.enable)
 			result = defaultStyle;
 
 		return result;

@@ -1,5 +1,9 @@
 package org.cg.eclipse.plugins.ftc;
 
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.cg.common.core.AbstractLogger;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -22,6 +26,14 @@ public class MessageConsoleLogger extends AbstractLogger {
 	private MessageConsole console;
 	private MessageConsoleStream outputStream;
 	private static MessageConsoleLogger _default;
+	
+	private final static Format formatter = new SimpleDateFormat("HH:mm:ss"); 
+	
+	public static String getLogLine(String info)
+	{
+		String date = formatter.format(new Date());
+		return date + " " + info;
+	}
 	
 	private MessageConsole findConsole(String name) {
 		IConsoleManager conMan = getConsoleManager();
@@ -60,7 +72,7 @@ public class MessageConsoleLogger extends AbstractLogger {
 	}
 
 	private void write(String s) {
-		outputStream.println(s);
+		outputStream.println(getLogLine(s));
 	}
 
 	public boolean reveal() {

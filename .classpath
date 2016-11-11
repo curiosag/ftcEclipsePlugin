@@ -8,16 +8,16 @@
 	<classpathentry exported="true" kind="lib" path="lib/commons-logging-1.1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/error_prone_annotations-2.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ftcClientJava-0.1.jar" sourcepath="lib/ftcClientJava-0.1-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/ftcConnector-0.1.jar" sourcepath="lib/ftcConnector-0.1-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ftcConnector-0.1.jar" sourcepath="/home/sp/.m2/repository/org/cg/ftc/ftcConnector/0.1/ftcConnector-0.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ftcParser-0.1.jar" sourcepath="lib/ftcParser-0.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ftcShared-0.1.jar" sourcepath="lib/ftcShared-0.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ftcSql-0.1.jar" sourcepath="lib/ftcSql-0.1-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/google-api-client-1.21.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/google-api-client-1.21.0.jar" sourcepath="/home/sp/.m2/repository/com/google/api-client/google-api-client/1.21.0/google-api-client-1.21.0-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/google-api-services-fusiontables-v2-rev4-1.21.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/google-http-client-1.19.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/google-http-client-1.19.0.jar" sourcepath="/home/sp/.m2/repository/com/google/http-client/google-http-client/1.19.0/google-http-client-1.19.0-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/google-http-client-jackson2-1.19.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/google-oauth-client-1.21.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/google-oauth-client-java6-1.19.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/google-oauth-client-1.21.0.jar" sourcepath="/home/sp/.m2/repository/com/google/oauth-client/google-oauth-client/1.21.0/google-oauth-client-1.21.0-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/google-oauth-client-java6-1.19.0.jar" sourcepath="/home/sp/.m2/repository/com/google/oauth-client/google-oauth-client-java6/1.19.0/google-oauth-client-java6-1.19.0-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/google-oauth-client-jetty-1.19.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/guava-19.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/guava-gwt-19.0.jar"/>

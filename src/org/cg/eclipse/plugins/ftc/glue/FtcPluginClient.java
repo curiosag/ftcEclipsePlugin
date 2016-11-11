@@ -1,16 +1,21 @@
 package org.cg.eclipse.plugins.ftc.glue;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-
 import org.cg.common.check.Check;
+import org.cg.common.io.FileUtil;
 import org.cg.common.io.PreferencesStringStorage;
 import org.cg.common.util.Op;
+import org.cg.common.util.StringUtil;
 import org.cg.eclipse.plugins.ftc.FtcEditor;
 import org.cg.eclipse.plugins.ftc.MessageConsoleLogger;
 import org.cg.eclipse.plugins.ftc.PluginConst;
 import org.cg.eclipse.plugins.ftc.WorkbenchUtil;
+import org.cg.eclipse.plugins.ftc.preference.PreferenceInitializer;
 import org.cg.eclipse.plugins.ftc.view.ResultView;
 import org.cg.ftc.ftcClientJava.BaseClient;
 import org.cg.ftc.ftcClientJava.Const;
@@ -30,10 +35,13 @@ import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
-
 import com.google.common.eventbus.Subscribe;
 
 import com.google.common.base.Optional;
@@ -53,13 +61,23 @@ public class FtcPluginClient extends BaseClient {
 	private Optional<FtcEditor> activeEditor = Optional.absent();
 	private final IPreferenceStore preferenceStore = new FtcPreferenceStore(clientSettings);
 	private boolean busy;
+	private boolean offline;
+
+	private final List<FtcEditor> editors = new LinkedList<FtcEditor>();
 
 	public IPreferenceStore getPreferenceStore() {
 		return preferenceStore;
 	};
 
-	public void authenticate() {
-		controller.authenticate();
+	public void reAuthenticate() {
+		doControllerAction(Const.authorize);
+	}
+
+	private void authenticate() {
+		if (!offline) {
+			controller.authenticate();
+		} else
+			logging.Info("working offline");
 	}
 
 	public SyntaxElementSource getSyntaxElementSource() {
@@ -73,17 +91,51 @@ public class FtcPluginClient extends BaseClient {
 		return new EclipseStyleCompletions(completions);
 	}
 
+	public void registerEditor(FtcEditor e) {
+		if (editors.indexOf(e) < 0)
+			editors.add(e);
+	}
+
+	public void unRegisterEditor(FtcEditor e) {
+		editors.remove(e);
+	}
+
 	public void onEditorActivated(IWorkbenchPart e) {
 		activeEditor = Optional.of((FtcEditor) e);
 	}
 
+	private void authenticateOnStartup() {
+		String id = model.clientId.getValue();
+		String secret = model.clientSecret.getValue();
+		String storedCredential = preferenceStore.getString("StoredCredential");
+		if (StringUtil.emptyOrNull(id) || StringUtil.emptyOrNull(secret))
+			logging.Info(
+					"Login credentials to access google data are not set.\n Use the Fusion Tables Console preference page\nto set them and to authenticate.");
+		// a valid credential has > 1Kb size
+		else if (storedCredential == null || storedCredential.length() < 1000)
+			logging.Info(
+					"Authentication is required to access google data.\n Use the Fusion Tables Console preference page to authenticate.");
+
+		if (model.clientId.getValue() != null && model.clientSecret.getValue() != null) {
+
+			if (storedCredential != null && storedCredential.length() > 1000)
+				authenticate();
+		}
+	}
+
 	public void onEditorClosed(IWorkbenchPart e) {
+		Check.isTrue(e instanceof FtcEditor);
+		unRegisterEditor((FtcEditor) e);
 		activeEditor = Optional.absent();
 	}
 
 	public static FtcPluginClient getDefault() {
-		if (_default == null)
+		if (_default == null) {
 			_default = new FtcPluginClient();
+			// wont get called from framework?
+			// can't happen in constructor
+			(new PreferenceInitializer()).initializeDefaultPreferences();
+		}
 		return _default;
 	}
 
@@ -98,9 +150,45 @@ public class FtcPluginClient extends BaseClient {
 
 		registerForLongOperationEvent();
 
-		logging.Info("connecting to fusion tables service");
-		controller.authenticate();
+		initOfflineStatus();
+		addPreferencesListeners();
+		authenticateOnStartup();
+	}
 
+	private void addPreferencesListeners() {
+		preferenceStore.addPropertyChangeListener(new IPropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				if (event.getProperty().equals(FtcPreferenceStore.KEY_OFFLINE))
+					resetOfflineStatus(Unbox.asBoolean(event.getNewValue()));
+				if (event.getProperty().equals(FtcPreferenceStore.KEY_CLIENT_ID))
+					model.clientId.setValue(Unbox.asString(event.getNewValue()));
+				if (event.getProperty().equals(FtcPreferenceStore.KEY_CLIENT_SECRET))
+					model.clientSecret.setValue(Unbox.asString(event.getNewValue()));
+			}
+		});
+
+	}
+
+	private void initOfflineStatus() {
+		offline = preferenceStore.getBoolean(FtcPreferenceStore.KEY_OFFLINE);
+		controller.setOffline(offline);
+	}
+
+	private void resetOfflineStatus(boolean isOffline) {
+		boolean recent = offline;
+		offline = isOffline;
+		if (recent != offline) {
+			if (!offline)
+				authenticate();
+			controller.setOffline(offline);
+			refreshEditors();
+		}
+	}
+
+	private void refreshEditors() {
+		for (FtcEditor e : editors)
+			e.invalidateTextRepresentation();
 	}
 
 	private CancellableProgress createProgress() {
@@ -161,28 +249,56 @@ public class FtcPluginClient extends BaseClient {
 		};
 	}
 
+	private final String eclipseCmdPrefix = "org.cg.eclipse.plugins.ftc.";
+
+	private String convertCmd(String eclipseCmd) {
+		return eclipseCmd.replace(eclipseCmdPrefix, "");
+	}
+
 	public void runCommand(String commandId) {
 		if (activeEditor.isPresent()) {
 			model.caretPositionQueryText = activeEditor.get().getCaretOffset();
 			model.queryText.setValue(activeEditor.get().getText());
 
-			MessageConsoleLogger.getDefault().Info(commandId);
-			
-			if (commandId.equals(PluginConst.FOCUS_DATA_VIEW)) {
-				IViewPart view = WorkbenchUtil.showView(PluginConst.RESULT_VIEW_ID);
-				view.setFocus();
+			if (busy && commandId.equals(Const.cancelExecution)) {
+				progress.cancel();
+				doControllerAction(convertCmd(commandId));
 			} else {
-				if (busy && commandId.equals(Const.cancelExecution))
-					progress.cancel();
+				if (busy)
+					logging.Info("Operation in progress...");
 				else {
-					if (busy)
-						logging.Info("Operation in progress...");
+					if (commandId.equals(PluginConst.CMD_EXPORT_CSV))
+						hdlExportCsv();
 					else
-						controller.actionPerformed(new ActionEvent(this, 0, commandId));
+						doControllerAction(convertCmd(commandId));
 				}
 			}
 		}
 
+	}
+
+	private void doControllerAction(String commandId) {
+		controller.actionPerformed(new ActionEvent(this, 0, commandId));
+	}
+
+	public void hdlExportCsv() {
+		String delim = preferenceStore.getString(FtcPreferenceStore.KEY_CSV_DELIMITER);
+		String quote = preferenceStore.getString(FtcPreferenceStore.KEY_CSV_QUOTECHAR);
+		String csvData = getResultView().getCsv(delim, quote);
+
+		FileDialog dialog = new FileDialog(WorkbenchUtil.getShell(), SWT.SAVE);
+
+		dialog.setFilterPath(preferenceStore.getString(FtcPreferenceStore.KEY_LAST_EXPORT_PATH));
+		dialog.setFilterNames(new String[] { "csv files", "All Files (*.*)" });
+		dialog.setFilterExtensions(new String[] { "*.csv", "*.*" });
+		String fullPath = dialog.open();
+
+		if (fullPath != null) {
+			File f = new File(fullPath);
+			String path = f.getPath();
+			FileUtil.writeToFile(csvData, fullPath);
+			preferenceStore.setValue(FtcPreferenceStore.KEY_LAST_EXPORT_PATH, path);
+		}
 	}
 
 	private Observer createOpResultObserver() {
@@ -207,15 +323,18 @@ public class FtcPluginClient extends BaseClient {
 			public void update(Observable o, Object arg) {
 				Display.getDefault().asyncExec(new Runnable() {
 					public void run() {
-						IViewPart view = WorkbenchUtil.showView(PluginConst.RESULT_VIEW_ID);
-						Check.isTrue(view instanceof ResultView);
-						ResultView resultView = (ResultView) view;
-						resultView.displayTable(Observism.decodeTableModelObservable(o));
+						getResultView().displayTable(Observism.decodeTableModelObservable(o));
 					}
 				});
 			}
 		};
 
+	}
+
+	private ResultView getResultView() {
+		IViewPart view = WorkbenchUtil.showView(PluginConst.RESULT_VIEW_ID);
+		Check.isTrue(view instanceof ResultView);
+		return (ResultView) view;
 	}
 
 	private void registerForLongOperationEvent() {

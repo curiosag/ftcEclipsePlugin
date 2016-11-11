@@ -8,6 +8,10 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+
 import javax.swing.table.TableModel;
 
 import org.cg.eclipse.plugins.ftc.PluginConst;
@@ -18,6 +22,7 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import com.opencsv.CSVWriter;
 
 public class ResultView extends ViewPart {
 
@@ -54,7 +59,6 @@ public class ResultView extends ViewPart {
 
 		int colCount = model.getColumnCount();
 
-		
 		for (int i = 0; i < colCount; i++) {
 			TableColumn column = new TableColumn(table, SWT.NONE);
 			column.setText(model.getColumnName(i));
@@ -70,6 +74,38 @@ public class ResultView extends ViewPart {
 			table.getColumn(i).pack();
 	}
 
+	public String getCsv(String delimiter, String quote) {
+		return getCsv(table.getItems(), delimiter, quote);
+	}
+
+	private String getCsv(TableItem[] tableItems, String delimiter, String quote) {
+		StringBuffer result = new StringBuffer();
+
+		for (int i = 0; i < tableItems.length; i++)
+			appendLine(result, tableItems[i], delimiter, quote);
+
+		return result.toString();
+	}
+
+	private void appendLine(StringBuffer result, TableItem item, String delimiter, String quote) {
+		String escapedQuote = quote + quote;
+		for (int j = 0; j < table.getColumnCount(); j++) {
+			result.append(quote);
+			
+			String current = item.getText(j);
+			if (current != null) {
+				if (quote != null && quote.length() > 0)
+					current = current.replace(quote, escapedQuote);
+				result.append(current);
+			}
+			
+			result.append(quote);
+			if (j < table.getColumnCount() - 1)
+				result.append(quote);
+		}
+		result.append("\n");
+	}
+
 	private KeyListener createKeyListener() {
 
 		return new KeyListener() {
@@ -77,25 +113,8 @@ public class ResultView extends ViewPart {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (((e.stateMask & SWT.CTRL) == SWT.CTRL) && (e.keyCode == 'c'))
-					clipboard.setContents(new Object[] { getSelectionText() },
+					clipboard.setContents(new Object[] { getCsv(table.getSelection(), " ", "") },
 							new Transfer[] { TextTransfer.getInstance() });
-			}
-
-			private Object getSelectionText() {
-				StringBuffer result = new StringBuffer();
-				TableItem[] selection = table.getSelection();
-				for (int i = 0; i < selection.length; i++)
-					appendLine(result, selection[i]);
-				return result.toString();
-			}
-
-			private void appendLine(StringBuffer result, TableItem item) {
-				for(int j = 0; j < table.getColumnCount(); j++)
-				{	
-					result.append(item.getText(j));
-					result.append(" ");
-				}
-				result.append("\n");
 			}
 
 			@Override
@@ -107,5 +126,5 @@ public class ResultView extends ViewPart {
 	@Override
 	public void setFocus() {
 	}
-	
+
 }

@@ -7,7 +7,7 @@
       <editor
             class="org.cg.eclipse.plugins.ftc.FtcEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="ftc, sql"
+            extensions="fts, sql"
             icon="icons/gft.png"
             id="org.cg.eclipse.ftcplugin.FtcEditor"
             name="Fusion Tables">
@@ -18,7 +18,7 @@
           point="org.eclipse.core.filebuffers.documentSetup">
        <participant
              class="org.cg.eclipse.plugins.ftc.SqlDocumentSetupParticipant"
-             extensions="ftc, sql">
+             extensions="fts, sql">
        </participant>
     </extension>
    <extension
@@ -81,6 +81,13 @@
              name="Result Data">
        </view>
     </extension>
+    <extension point="org.eclipse.core.expressions.definitions">
+   		<definition id="org.cg.eclipse.plugins.ftc.definition.ftcPerspectiveActive">
+       		<with variable="activeWorkbenchWindow.activePerspective">
+           		<equals value="org.cg.eclipse.plugins.ftc.perspective"/>
+            </with>
+   		</definition>
+	</extension>
     <extension
           point="org.eclipse.ui.commands">
        <category
@@ -117,6 +124,16 @@
              id="%ftc.refreshTables"
              name="%ftc.tooltipRefreshTables">
        </command>
+       <command
+             categoryId="org.cg.eclipse.plugins.ftc.commands"
+             id="focusDataView"
+             name="Focus Data View">
+       </command>       
+       <command
+             categoryId="org.cg.eclipse.plugins.ftc.commands"
+             id="org.cg.eclipse.plugins.ftc.exportCsv"
+             name="Export Fu csv">
+       </command>       
     </extension>
     <extension
           point="org.eclipse.ui.handlers">
@@ -146,66 +163,67 @@
        </handler>
        <handler
              class="org.cg.eclipse.plugins.ftc.handlers.FtcCommandHandler"
-             commandId="focusDataView">
-       </handler>      
+             commandId="org.cg.eclipse.plugins.ftc.exportCsv">
+       </handler>
     </extension>
     <extension
+          id="org.cg.eclipse.plugins.ftc.ftcKeyBindings"
           point="org.eclipse.ui.bindings">
-          <!--  M1-ctrl M2-shift M3-alt 
-          http://help.eclipse.org/mars/index.jsp?topic=%2Forg.eclipse.platform.doc.isv%2Freference%2Fapi%2Forg%2Feclipse%2Fui%2Fprogress%2FIProgressConstants.html
-          -->
-       <key
-             commandId="%ftc.listTables"
-             contextId="org.eclipse.ant.ui.AntEditorScope"
-             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-             sequence="M1+T">
-       </key>
+          <!--  M1-ctrl M2-shift M3-alt -->
        <key
              commandId="%ftc.execSql"
              contextId="org.eclipse.ui.contexts.window"
              schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-             sequence="M1+R">
-       </key>
-       <key
-             commandId="%ftc.cancelExecution"
-             contextId="org.eclipse.ui.contexts.window"
-             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-             sequence="M1+M2+C">
-       </key>
-       <key
-             commandId="%ftc.viewPreprocessedQuery"
-             contextId="org.eclipse.ui.contexts.window"
-             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-             sequence="M3+R">
+             sequence="M1+M3+R">
        </key>
         <key
              commandId="%ftc.execAllSql"
              contextId="org.eclipse.ui.contexts.window"
              schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-             sequence="M1+M3+R">
-       </key>
-              <key
-             commandId="%ftc.listTables"
-             contextId="org.cg.eclipse.plugins.ftc.ftcEditorScope"
-             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-             sequence="M1+1">
-       </key>
+             sequence="M1+M3+A">
+       </key>       
        <key
-             commandId="focusDataView"
+             commandId="%ftc.cancelExecution"
              contextId="org.eclipse.ui.contexts.window"
              schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-             sequence="M3+J">
+             sequence="M1+M3+C">
        </key>
-       
+       <key
+             commandId="%ftc.viewPreprocessedQuery"
+             contextId="org.eclipse.ui.contexts.window"
+             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+             sequence="M1+M3+V">
+       </key>
+       <key
+             commandId="%ftc.listTables"
+             contextId="org.eclipse.ui.contexts.window"
+             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+             sequence="M1+T">
+       </key>
     </extension>
     <extension
           point="org.eclipse.ui.menus">
-       <menuContribution
+          <menuContribution	locationURI="menu:file?after=open.ext">
+            
+     		<command
+           		commandId="org.cg.eclipse.plugins.ftc.exportCsv"
+           		id="org.cg.eclipse.plugins.ftc.menu.exportCsv"
+           		style="push">
+          <visibleWhen
+                checkEnabled="false">
+                <reference definitionId="org.cg.eclipse.plugins.ftc.definition.ftcPerspectiveActive"/>
+          </visibleWhen>
+     		</command>
+		</menuContribution>
+       	<menuContribution
              locationURI="menu:org.eclipse.ui.main.menu?after=additions">
           <menu
                 id="org.cg.eclipse.plugins.ftc.menu"
                 label="%ftc.menu"
                 mnemonic="C">
+            	<visibleWhen checkEnabled="false">
+                	<reference definitionId="org.cg.eclipse.plugins.ftc.definition.ftcPerspectiveActive"/>
+         		</visibleWhen>
              <command
                    commandId="%ftc.listTables"
                    id="%ftc.listTables"
@@ -240,50 +258,68 @@
        </menuContribution>
        <menuContribution
              locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
-          <toolbar
-                id="org.cg.eclipse.plugins.ftc.toolbar">
-             <command
-                   commandId="%ftc.listTables"
-                   icon="icons/table.png"
-                   id="%ftc.listTables"
-                   tooltip="%ftc.tooltipListTables">
-             </command>
-       <command
-             commandId="%ftc.execSql"
-             icon="icons/control_play_blue.png"
-             id="%ftc.execSql"
-             tooltip="%ftc.tooltipExecSql">
-       </command>
-       <command
-             id="%ftc.execAllSql"
-             icon="icons/control_fastforward_blue.png"             
-             commandId="%ftc.execAllSql"
-             tooltip="%ftc.tooltipExecAllSql">
-       </command>
-       <command
-             id="%ftc.cancelExecution"
-             icon="icons/cancel.png"             
-             commandId="%ftc.cancelExecution"
-             tooltip="Cancel Execution">
-       </command>
-       <command
-             id="%ftc.refreshTables"
-             icon="icons/arrow_refresh_small.png"             
-             commandId="%ftc.refreshTables"
-             tooltip="%ftc.tooltipRefreshTables">
-       </command>
-             
+           <toolbar  id="org.cg.eclipse.plugins.ftc.toolbar">
+           <visibleWhen checkEnabled="false">
+            		<with variable="activeWorkbenchWindow.activePerspective">
+                		<equals value="org.cg.eclipse.plugins.ftc.perspective"/>
+            		</with>
+    	   </visibleWhen>
+    	   <command
+	             commandId="%ftc.viewPreprocessedQuery"
+	             icon="icons/control_play.png"
+	             id="%ftc.viewPreprocessedQuery"
+	             tooltip="%ftc.tooltipViewPreprocessedQuery">
+	       </command>
+           <command
+                 commandId="%ftc.listTables"
+                 icon="icons/table.png"
+                 id="%ftc.listTables"
+                 tooltip="%ftc.tooltipListTables">
+           </command>
+	       <command
+	             commandId="%ftc.execSql"
+	             icon="icons/control_play_blue.png"
+	             id="%ftc.execSql"
+	             tooltip="%ftc.tooltipExecSql">
+	       </command>
+	       <command
+	             id="%ftc.execAllSql"
+	             icon="icons/control_fastforward_blue.png"             
+	             commandId="%ftc.execAllSql"
+	             tooltip="%ftc.tooltipExecAllSql">
+	       </command>
+	       <command
+	             id="%ftc.cancelExecution"
+	             icon="icons/cancel.png"             
+	             commandId="%ftc.cancelExecution"
+	             tooltip="Cancel Execution">
+	       </command>
+	       <command
+	             id="%ftc.refreshTables"
+	             icon="icons/arrow_refresh_small.png"             
+	             commandId="%ftc.refreshTables"
+	             tooltip="%ftc.tooltipRefreshTables">
+	       </command>  
           </toolbar>
        </menuContribution>
     </extension>
     <extension
           point="org.eclipse.ui.preferencePages">
        <page
-             class="org.cg.eclipse.plugins.ftc.preference.Preferences"
+             class="org.cg.eclipse.plugins.ftc.preference.FtcPreferencePage"
              id="org.cg.eclipse.plugins.ftc.preference.Preferences"
              name="Fusion Tables Console">
        </page>
     </extension>
+    <extension
+          point="org.eclipse.ui.preferencePages">
+       <page
+             category="org.cg.eclipse.plugins.ftc.preference.Preferences"
+             class="org.cg.eclipse.plugins.ftc.preference.SyntaxColoringPreferencePage"
+             id="org.cg.eclipse.plugins.ftc.preferences.syntaxColoring"
+             name="SyntaxColoringPreferences">
+       </page>
+    </extension>    
     <extension
           point="org.eclipse.core.runtime.preferences">
        <initializer
@@ -298,22 +334,5 @@
              id="org.cg.eclipse.plugins.ftc.perspective"
              name="Fusion Tables">
        </perspective>
-    </extension>
-    <extension
-          point="org.eclipse.ui.contexts">
-       <context
-             id="org.cg.eclipse.plugins.ftc.ftcEditorScope"
-             parentId="org.eclipse.ui.textEditorScope"
-             name="ftcContext">
-       </context>
-    </extension>
-    <extension
-          point="org.eclipse.ui.preferencePages">
-       <page
-             category="org.cg.eclipse.plugins.ftc.preference.Preferences"
-             class="org.cg.eclipse.plugins.ftc.preference.SyntaxColoringPreferencePage"
-             id="org.cg.eclipse.plugins.ftc.preferences.syntaxColoring"
-             name="SyntaxColoringPreferences">
-       </page>
     </extension>
 </plugin>

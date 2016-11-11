@@ -19,9 +19,8 @@ public class FtcSourceViewer extends SourceViewer {
 		this.resource = resource;
 		this.syntaxColoring = new SyntaxColoring(this);
 	}
-	
-	public void resetSyntaxColoring()
-	{
+
+	public void resetSyntaxColoring() {
 		getSyntaxColoring().reloadStyles();
 	}
 
