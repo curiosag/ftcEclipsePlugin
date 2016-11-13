@@ -1,4 +1,4 @@
-package org.cg.eclipse.plugins.ftc;
+package org.cg.eclipse.plugins.ftc.template;
 
 import org.cg.common.check.Check;
 import org.eclipse.jface.text.IRegion;
@@ -6,10 +6,9 @@ import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.templates.DocumentTemplateContext;
 import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.TemplateContext;
-import org.eclipse.jface.text.templates.TemplateProposal;
 import org.eclipse.swt.graphics.Image;
 
-public class FtcTemplateProposal extends TemplateProposal {
+public class FtcTemplateProposal extends TweakedTemplateProposal {
 		
 	private static DocumentTemplateContext getDc(TemplateContext context)
 	{

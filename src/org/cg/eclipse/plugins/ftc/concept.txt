@@ -22,4 +22,3 @@ $ git show REVISION:path/to/file
 For example, to show the 4th last commit of the file src/main.c, use:
 
 $ git show HEAD~4:src/main.c
-	

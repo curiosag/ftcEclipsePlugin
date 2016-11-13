@@ -1,4 +1,4 @@
-package org.cg.eclipse.plugins.ftc;
+package org.cg.eclipse.plugins.ftc.syntaxstyle;
 
 import org.eclipse.jface.text.rules.IWhitespaceDetector;
 

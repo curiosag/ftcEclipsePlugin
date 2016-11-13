@@ -1,4 +1,4 @@
-package org.cg.eclipse.plugins.ftc;
+package org.cg.eclipse.plugins.ftc.template;
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.templates.DocumentTemplateContext;

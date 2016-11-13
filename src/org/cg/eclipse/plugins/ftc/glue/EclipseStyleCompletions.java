@@ -25,9 +25,9 @@ public class EclipseStyleCompletions {
 
 	private String adjust(String patch) {
 		String result = patch.replace("${cursor}", "");
-		if (result.indexOf("${t}") >= 0)
-			return result.replace("${c}", "colname");
-		else
-			return result;
+		// if (result.indexOf("${t}") >= 0)
+		// return result.replace("${c}", "colname");
+		// else
+		return result;
 	}
 }

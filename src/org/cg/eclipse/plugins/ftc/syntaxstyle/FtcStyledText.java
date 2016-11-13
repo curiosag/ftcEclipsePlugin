@@ -1,4 +1,4 @@
-package org.cg.eclipse.plugins.ftc;
+package org.cg.eclipse.plugins.ftc.syntaxstyle;
 
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;

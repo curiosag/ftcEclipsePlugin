@@ -5,6 +5,11 @@ import java.util.Observer;
 
 import org.cg.common.check.Check;
 import org.cg.eclipse.plugins.ftc.preference.SyntaxStyle;
+import org.cg.eclipse.plugins.ftc.syntaxstyle.ColorManager;
+import org.cg.eclipse.plugins.ftc.syntaxstyle.ParsedSqlTokensScanner;
+import org.cg.eclipse.plugins.ftc.syntaxstyle.SqlCommentPartitionScanner;
+import org.cg.eclipse.plugins.ftc.syntaxstyle.SyntaxColoring;
+import org.cg.eclipse.plugins.ftc.template.FtcCompletionProcessor;
 import org.cg.ftc.shared.interfaces.SyntaxElementType;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextAttribute;

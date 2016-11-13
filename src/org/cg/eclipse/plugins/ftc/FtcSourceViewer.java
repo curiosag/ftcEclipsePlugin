@@ -1,5 +1,7 @@
 package org.cg.eclipse.plugins.ftc;
 
+import org.cg.eclipse.plugins.ftc.syntaxstyle.FtcStyledText;
+import org.cg.eclipse.plugins.ftc.syntaxstyle.SyntaxColoring;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.IVerticalRuler;

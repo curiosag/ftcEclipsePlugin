@@ -1,5 +1,6 @@
 package org.cg.eclipse.plugins.ftc;
 
+import org.cg.eclipse.plugins.ftc.syntaxstyle.SyntaxColoring;
 import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;

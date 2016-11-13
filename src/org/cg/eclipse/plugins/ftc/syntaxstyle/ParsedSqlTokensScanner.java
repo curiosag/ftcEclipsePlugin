@@ -1,8 +1,9 @@
-package org.cg.eclipse.plugins.ftc;
+package org.cg.eclipse.plugins.ftc.syntaxstyle;
 
 import java.util.List;
 
 import org.cg.common.check.Check;
+import org.cg.eclipse.plugins.ftc.MessageConsoleLogger;
 import org.cg.eclipse.plugins.ftc.preference.SyntaxStyle;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextAttribute;

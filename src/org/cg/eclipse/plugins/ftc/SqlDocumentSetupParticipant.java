@@ -1,5 +1,6 @@
 package org.cg.eclipse.plugins.ftc;
 
+import org.cg.eclipse.plugins.ftc.syntaxstyle.SqlCommentPartitionScanner;
 import org.eclipse.core.filebuffers.IDocumentSetupParticipant;
 
 import org.eclipse.jface.text.IDocument;

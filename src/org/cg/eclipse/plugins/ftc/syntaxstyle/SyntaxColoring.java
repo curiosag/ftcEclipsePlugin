@@ -1,4 +1,4 @@
-package org.cg.eclipse.plugins.ftc;
+package org.cg.eclipse.plugins.ftc.syntaxstyle;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,6 +9,9 @@ import java.util.Observable;
 
 import org.cg.common.check.Check;
 import org.cg.common.util.Op;
+import org.cg.eclipse.plugins.ftc.FtcSourceViewer;
+import org.cg.eclipse.plugins.ftc.MessageConsoleLogger;
+import org.cg.eclipse.plugins.ftc.PluginConst;
 import org.cg.eclipse.plugins.ftc.glue.FtcPluginClient;
 import org.cg.eclipse.plugins.ftc.preference.SyntaxStyle;
 import org.cg.eclipse.plugins.ftc.preference.SyntaxStyleSettings;

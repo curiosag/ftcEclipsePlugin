@@ -25,6 +25,7 @@ import org.cg.common.check.Check;
 import org.cg.eclipse.plugins.ftc.glue.FtcPluginClient;
 import org.cg.eclipse.plugins.ftc.glue.FtcPreferenceStore;
 import org.cg.eclipse.plugins.ftc.glue.Unbox;
+import org.cg.eclipse.plugins.ftc.syntaxstyle.FtcStyledText;
 import org.cg.ftc.shared.interfaces.SyntaxElement;
 import org.eclipse.swt.custom.CaretEvent;
 import org.eclipse.swt.custom.CaretListener;

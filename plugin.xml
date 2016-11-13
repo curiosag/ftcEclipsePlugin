@@ -56,7 +56,15 @@
             icon="icons/sample.gif"
             description="tables"
             contextTypeId="org.cg.ftc"
-            class="org.cg.eclipse.plugins.ftc.FtcVariableResolver">
+            class="org.cg.eclipse.plugins.ftc.template.FtcVariableResolver">
+      </resolver>
+      <resolver
+            name="ftc.resolvers.tt"
+            type="tt"
+            icon="icons/sample.gif"
+            description="tables"
+            contextTypeId="org.cg.ftc"
+            class="org.cg.eclipse.plugins.ftc.template.FtcVariableResolver">
       </resolver>
       <resolver
             name="ftc.resolvers.c"
@@ -64,7 +72,39 @@
             icon="icons/sample.gif"
             description="columns"
             contextTypeId="org.cg.ftc"
-            class="org.cg.eclipse.plugins.ftc.FtcVariableResolver">
+            class="org.cg.eclipse.plugins.ftc.template.FtcVariableResolver">
+      </resolver>
+            <resolver
+            name="ftc.resolvers.c1"
+            type="c1"
+            icon="icons/sample.gif"
+            description="columns"
+            contextTypeId="org.cg.ftc"
+            class="org.cg.eclipse.plugins.ftc.template.FtcVariableResolver">
+      </resolver>
+      <resolver
+            name="ftc.resolvers.c2"
+            type="c2"
+            icon="icons/sample.gif"
+            description="columns"
+            contextTypeId="org.cg.ftc"
+            class="org.cg.eclipse.plugins.ftc.template.FtcVariableResolver">
+      </resolver>
+          <resolver
+            name="ftc.resolvers.c3"
+            type="c3"
+            icon="icons/sample.gif"
+            description="columns"
+            contextTypeId="org.cg.ftc"
+            class="org.cg.eclipse.plugins.ftc.template.FtcVariableResolver">
+      </resolver>
+      <resolver
+            name="ftc.resolvers.c4"
+            type="c4"
+            icon="icons/sample.gif"
+            description="columns"
+            contextTypeId="org.cg.ftc"
+            class="org.cg.eclipse.plugins.ftc.template.FtcVariableResolver">
       </resolver>
    </extension>
     <extension

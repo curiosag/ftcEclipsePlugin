@@ -1,4 +1,4 @@
-package org.cg.eclipse.plugins.ftc;
+package org.cg.eclipse.plugins.ftc.syntaxstyle;
 
 import org.cg.eclipse.plugins.ftc.preference.SyntaxStyle;
 import org.cg.ftc.shared.interfaces.SyntaxElement;

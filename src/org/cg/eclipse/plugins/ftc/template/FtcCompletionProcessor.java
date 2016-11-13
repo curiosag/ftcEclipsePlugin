@@ -1,8 +1,11 @@
-package org.cg.eclipse.plugins.ftc;
+package org.cg.eclipse.plugins.ftc.template;
 
 import java.util.List;
 
 import org.cg.common.check.Check;
+import org.cg.eclipse.plugins.ftc.FtcContextType;
+import org.cg.eclipse.plugins.ftc.FtcPlugin;
+import org.cg.eclipse.plugins.ftc.PluginConst;
 import org.cg.eclipse.plugins.ftc.glue.EclipseStyleCompletions;
 import org.cg.eclipse.plugins.ftc.glue.FtcPluginClient;
 import org.cg.ftc.shared.structures.CodeSnippetCompletion;
@@ -15,14 +18,13 @@ import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.templates.Template;
-import org.eclipse.jface.text.templates.TemplateCompletionProcessor;
 import org.eclipse.jface.text.templates.TemplateContext;
 import org.eclipse.jface.text.templates.TemplateContextType;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.editors.text.templates.ContributionContextTypeRegistry;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-public class FtcCompletionProcessor extends TemplateCompletionProcessor {
+public class FtcCompletionProcessor extends TweakedTemplateCompletionProcessor {
 
 	private static final String TEMPLATE_IMAGE = "$nl$/icons/template.gif"; //$NON-NLS-1$
 	private TemplateContextType templateContextType = null;
@@ -49,7 +51,7 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 	protected ICompletionProposal createProposal(Template template, TemplateContext context, IRegion region, int relevance) {
 		return new FtcTemplateProposal(template, context, region, getImage(template), relevance);
 	}
-
+	
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int documentOffset) {
 	
@@ -77,8 +79,8 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 		return FtcPluginClient.getDefault().getCompletions(text, documentOffset);
 	}
 
-	private static ICompletionProposal[] getModelElementProposals(List<ModelElementCompletion> modelElements, int replacementOffset, int replacementLength) {
-		ICompletionProposal[] result = new ICompletionProposal[modelElements.size()];
+	private static CompletionProposal[] getModelElementProposals(List<ModelElementCompletion> modelElements, int replacementOffset, int replacementLength) {
+		CompletionProposal[] result = new CompletionProposal[modelElements.size()];
 		
 		int i = 0;
 		for (ModelElementCompletion e : modelElements) {
@@ -97,7 +99,7 @@ public class FtcCompletionProcessor extends TemplateCompletionProcessor {
 	 * @param replacementLength the length of the text to be replaced by completions
 	 */
 
-	public static ICompletionProposal[] getModelElementProposals(String text, int replacementOffset, int replacementLength)
+	public static CompletionProposal[] getModelElementProposals(String text, int replacementOffset, int replacementLength)
 	{
 		return getModelElementProposals(getFtcCompletions(text, replacementOffset).modelElements, replacementOffset, replacementLength);
 	}
