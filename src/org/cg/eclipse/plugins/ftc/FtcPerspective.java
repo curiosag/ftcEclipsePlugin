@@ -1,5 +1,6 @@
 package org.cg.eclipse.plugins.ftc;
 
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
@@ -15,6 +16,9 @@ public class FtcPerspective implements IPerspectiveFactory {
 
 		this.layoutFactory = layout;
 		addViews();
+		layout.addActionSet(JavaUI.ID_ELEMENT_CREATION_ACTION_SET);
+		layout.addNewWizardShortcut("org.eclipse.ui.wizards.new.folder");
+		layout.addNewWizardShortcut("org.eclipse.ui.wizards.new.file");
 	}
 
 	private void addViews() {
@@ -28,7 +32,7 @@ public class FtcPerspective implements IPerspectiveFactory {
 		IFolderLayout topLeft = layoutFactory.createFolder("topLeft", // NON-NLS-1
 				IPageLayout.LEFT, 0.25f, layoutFactory.getEditorArea());
 		topLeft.addView(IConsoleConstants.ID_CONSOLE_VIEW);
-		topLeft.addView(IPageLayout.ID_RES_NAV);
+		topLeft.addView(IPageLayout.ID_PROJECT_EXPLORER);//ID_RES_NAV);
 
 	}
 
