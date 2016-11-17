@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Fusion Tables Console Plugin
+Bundle-Name: Fusion Tables Console
 Bundle-SymbolicName: org.cg.eclipse.plugins.ftc;singleton:=true
 Bundle-Version: 0.1
 Bundle-Activator: org.cg.eclipse.plugins.ftc.FtcPlugin

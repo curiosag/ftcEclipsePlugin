@@ -1,5 +1,6 @@
 package org.cg.eclipse.plugins.ftc.glue;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -67,7 +68,7 @@ public class FtcPreferenceStore extends Observable implements IPreferenceStore {
 	}
 
 	@Override
-	public boolean getBoolean(String name) {
+	 public boolean getBoolean(String name) {
 		return clientSettings.getPreferences().getBoolean(name, getDefaultBoolean(name));
 	}
 
